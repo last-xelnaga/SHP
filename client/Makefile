@@ -1,15 +1,21 @@
+INC=-I.
 CFLAGS=-Wall -O2 -fno-omit-frame-pointer
-#CFLAGS=-Wall -ggdb 
+LIB=-L../external/libconfig -lconfig
+#CFLAGS+=-Wall -ggdb 
+
+SRC=main.cpp
+
+OBJ=$(SRC:.cpp=.o)
 
 %.o: %.cpp
-	g++ -c -o $@ $< $(CFLAGS)
+	g++ $(CFLAGS) $(INC) -c -o $@ $<
 
 .PHONY: all clean
 
 all: shp_client
 
-shp_client: main.o
-	g++ -o $@ $^
+shp_client: $(OBJ)
+	g++ -o $@ $^ $(LIB)
 
 clean:
 	rm -f *.o shp_client
