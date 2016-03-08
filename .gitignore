@@ -1,4 +1,6 @@
 *.kdev4
 *.o
 *.a
+*.so
+*.so.*
 shp_client
