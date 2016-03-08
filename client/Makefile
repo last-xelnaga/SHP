@@ -1,6 +1,6 @@
 INC=-I.
 CFLAGS=-Wall -O2 -fno-omit-frame-pointer
-LIB=-L../external/libconfig -lconfig
+LIB=-L../external/libconfig -lconfig -L../external/wiringPi -lwiringPi -lpthread
 #CFLAGS+=-Wall -ggdb 
 
 SRC=main.cpp

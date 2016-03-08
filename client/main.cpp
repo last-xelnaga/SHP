@@ -1,6 +1,25 @@
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include "../external/libconfig/libconfig.h"
+#include "../external/wiringPi/wiringPi.h"
+
+void setup (
+    void)
+{
+    if (geteuid() != 0)
+    {
+        printf("Need to be root to run\n");
+        exit(0);
+    }
+
+    if (wiringPiSetup() == -1)
+        exit(1);
+
+    printf("OK\n") ;
+}
+
 
 
 int main (
@@ -19,7 +38,7 @@ int main (
         return -1;
     }
 
-
+    setup();
 
     config_destroy(&cfg);
     return 0;
