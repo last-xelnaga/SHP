@@ -1,9 +1,9 @@
 INC=-I.
 CFLAGS=-Wall -O2 -fno-omit-frame-pointer
-LIB=-L../external/libconfig -lconfig -L../external/wiringPi -lwiringPi -lpthread
+LIB=-Lexternal/libconfig -lconfig -Lexternal/wiringPi -lwiringPi -lpthread
 #CFLAGS+=-Wall -ggdb 
 
-SRC=main.cpp
+SRC=client_main.cpp config.cpp
 
 OBJ=$(SRC:.cpp=.o)
 
@@ -19,3 +19,6 @@ shp_client: $(OBJ)
 
 clean:
 	rm -f *.o shp_client
+
+config.o: config.hpp
+client_main.o: config.hpp sensors/sensor_button.hpp sensors/sensor_led.hpp
