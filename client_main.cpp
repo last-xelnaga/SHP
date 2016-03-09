@@ -22,7 +22,7 @@ void setup (
     if (wiringPiSetup() == -1)
         exit(1);
 
-    printf("OK\n") ;
+    printf("setup OK\n") ;
 }
 
 int led_works = 0;
@@ -31,6 +31,7 @@ int reset_callback(
         const void* p_user_data)
 {
     LED* p_status_led = (LED*) p_user_data;
+    printf("reset_callback\n") ;
 
     if (led_works)
     {
@@ -58,6 +59,8 @@ int main (
 
     Config::instance()->read_config("shp_client.cfg");
 
+    setup();
+
     LED* p_status_led = new LED(0, "status");
     p_status_led->activate();
 
@@ -65,10 +68,15 @@ int main (
     p_reset_button->set_callback(reset_callback, p_status_led);
     p_reset_button->activate();
 
-    for (;;)
+    int i = 10;
+    while (i --)
     {
-        sleep(10);
+        reset_callback(p_status_led);
+        sleep(1);
     }
+
+    delete p_reset_button;
+    delete p_status_led;
 
     return 0;
 }

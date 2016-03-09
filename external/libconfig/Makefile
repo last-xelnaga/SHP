@@ -1,24 +1,28 @@
-CFLAGS=-Wall -I. -O2
-LIB=libconfig.a
+PREFIX	= /home/asiris/workbench/pi/wifi/rtl8192eu_rpi2/workbench/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-
+CC	= $(PREFIX)gcc
 
-SRC=libconfig.c \
-    scanctx.c \
-    scanner.c \
-    strbuf.c \
-    grammar.c
+CFLAGS	= -Wall -I. -O2
+LIB	= libconfig.a
 
-OBJ=$(SRC:.c=.o)
+SRC	= \
+	libconfig.c \
+	scanctx.c \
+	scanner.c \
+	strbuf.c \
+	grammar.c
+
+OBJ	= $(SRC:.c=.o)
 
 %.o: %.c
-	gcc $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 .PHONY: all clean
 
 all: $(LIB)
 
 $(LIB): $(OBJ)
-	ar rcs $@ $^
-	ranlib $@
+	$(PREFIX)ar rcs $@ $^
+	$(PREFIX)ranlib $@
 
 clean:
 	rm -f *.o $(LIB)

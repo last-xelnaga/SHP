@@ -34,9 +34,12 @@ endif
 STATIC=libwiringPi.a
 DYNAMIC=libwiringPi.so.$(VERSION)
 
+PREFIX=/home/asiris/workbench/pi/wifi/rtl8192eu_rpi2/workbench/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-
 #DEBUG	= -g -O0
 DEBUG	= -O2
-CC	= gcc
+CC	= $(PREFIX)gcc
+AR	= $(PREFIX)ar
+RANLIB	= $(PREFIX)ranlib
 INCLUDE	= -I.
 DEFS	= -D_GNU_SOURCE
 CFLAGS	= $(DEBUG) $(DEFS) -Wformat=2 -Wall -Winline $(INCLUDE) -pipe -fPIC
@@ -83,8 +86,8 @@ static:		$(STATIC)
 
 $(STATIC):	$(OBJ)
 	$Q echo "[Link (Static)]"
-	$Q ar rcs $(STATIC) $(OBJ)
-	$Q ranlib $(STATIC)
+	$Q $(AR) rcs $(STATIC) $(OBJ)
+	$Q $(RANLIB) $(STATIC)
 #	@size   $(STATIC)
 
 $(DYNAMIC):	$(OBJ)
