@@ -3,73 +3,45 @@
 #define SENSOR_BUTTON_HPP
 
 #include "sensor.hpp"
-#include <string.h>
 #include <pthread.h>
-#include <stdio.h>
 
 
-typedef int (*wait_for_button_cb)(
+typedef int (*button_up_cb)(
         const void* p_user_data);
 
-void *wait_button(void *arg)
+class sensor_button_class : public sensor_class
 {
-    while(1)
-    {
-        printf("Waiting for button ... ");
-        while(digitalRead(/*sensor_gpio_num*/8) == HIGH)
-            delay(100);
-        printf ("Got it\n") ;
-    //p_wait_for_button_cb(p_user_data);
-    }
-
-    return NULL;
-}
-
-class Button : public Sensor
-{
-    wait_for_button_cb p_wait_for_button_cb = NULL;
+    button_up_cb p_button_up_cb = NULL;
     void* p_user_data = NULL;
     pthread_t pth;  // this is our thread identifier
 
-
-
 public:
-    Button(unsigned char gpio_num, const char* p_name)
-    {
-        sensor_gpio_num = gpio_num;
-        strcpy(p_sensor_name, p_name);
-    }
+    sensor_button_class(
+        unsigned char gpio_num,
+        const char* p_name);
 
-    virtual ~Button(void)
-    {
-
-        pthread_cancel(pth);
-
-        printf("wait for join\n");
-        /* wait for our thread to finish before continuing */
-        pthread_join(pth, NULL /* void ** return value could go here */);
-
-        printf("button destroyed\n");
-    }
+    virtual ~sensor_button_class(void);
 
     void set_callback(
-            wait_for_button_cb p_callback,
+            button_up_cb p_callback,
             const void* p_data)
     {
-        p_wait_for_button_cb = p_callback;
+        p_button_up_cb = p_callback;
         p_user_data = (void*)p_data;
 
     }
 
-    virtual void activate(
-            void)
+    button_up_cb get_callback(
+        void** p_data)
     {
-        pinMode(sensor_gpio_num, INPUT);
-
-        /* Create worker thread */
-        pthread_create(&pth, NULL, wait_button, NULL);
-        printf("button work thread create\n");
+        *p_data = p_user_data;
+        return p_button_up_cb;
     }
+
+    virtual void activate(
+            void);
 };
+
+
 
 #endif // SENSOR_BUTTON_HPP

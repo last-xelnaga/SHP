@@ -2,9 +2,9 @@
 #ifndef SENSOR_HPP
 #define SENSOR_HPP
 
-#include "../external/wiringPi/wiringPi.h"
+//#include "../external/wiringPi/wiringPi.h"
 
-class Sensor
+class sensor_class
 {
 protected:
     unsigned char sensor_gpio_num;
@@ -12,7 +12,7 @@ protected:
 
 public:
 
-    virtual ~Sensor(void)
+    virtual ~sensor_class(void)
     {
 
     }

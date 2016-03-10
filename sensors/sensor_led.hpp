@@ -3,13 +3,12 @@
 #define SENSOR_LED_HPP
 
 #include "sensor.hpp"
-#include <string.h>
 
-class LED : public Sensor
+class sensor_led_class : public sensor_class
 {
     int active;
 
-    void flashing (
+    /*void flashing (
         unsigned int ms)
     {
         while(active)
@@ -18,53 +17,53 @@ class LED : public Sensor
             delay(ms);
             switch_off();
         }
-    }
+    }*/
 
 public:
-    LED(unsigned char gpio_num, const char* p_name)
-    {
+    sensor_led_class(unsigned char gpio_num, const char* p_name);
+    /*{
         sensor_gpio_num = gpio_num;
         strcpy(p_sensor_name, p_name);
 
 
-    }
+    }*/
 
-    virtual ~LED(void)
-    {
+    virtual ~sensor_led_class(void);
+    /*{
 
-    }
+    }*/
 
     void switch_on(
-            void)
-    {
+            void);
+    /*{
         digitalWrite(sensor_gpio_num, 1);
-    }
+    }*/
 
     void switch_off(
-            void)
-    {
+            void);
+    /*{
         digitalWrite(sensor_gpio_num, 0);
-    }
+    }*/
 
     void flash_on(
-        unsigned int ms)
-    {
+        unsigned int ms);
+    /*{
         active = 1;
         // start thread 
-    }
+    }*/
 
     void flash_off(
-        void)
-    {
+        void);
+    /*{
         active = 0;
-    }
+    }*/
 
     virtual void activate(
-        void)
-    {
+        void);
+    /*{
         pinMode(sensor_gpio_num, OUTPUT);
         switch_off();
-    }
+    }*/
 };
 
 #endif // SENSOR_LED_HPP

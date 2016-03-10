@@ -7,6 +7,7 @@
 #include "config.hpp"
 #include "sensors/sensor_button.hpp"
 #include "sensors/sensor_led.hpp"
+#include "sensors/sensor_dht11.hpp"
 
 #include "external/wiringPi/wiringPi.h"
 
@@ -30,7 +31,7 @@ int led_works = 0;
 int reset_callback(
         const void* p_user_data)
 {
-    LED* p_status_led = (LED*) p_user_data;
+    sensor_led_class* p_status_led = (sensor_led_class*) p_user_data;
     printf("reset_callback\n") ;
 
     if (led_works)
@@ -61,10 +62,10 @@ int main (
 
     setup();
 
-    LED* p_status_led = new LED(0, "status");
+    sensor_led_class* p_status_led = new sensor_led_class(0, "status");
     p_status_led->activate();
 
-    Button* p_reset_button = new Button(8, "reset");
+    sensor_button_class* p_reset_button = new sensor_button_class(8, "reset");
     p_reset_button->set_callback(reset_callback, p_status_led);
     p_reset_button->activate();
 

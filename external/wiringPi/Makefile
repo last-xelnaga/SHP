@@ -34,7 +34,8 @@ endif
 STATIC=libwiringPi.a
 DYNAMIC=libwiringPi.so.$(VERSION)
 
-PREFIX=/home/asiris/workbench/pi/wifi/rtl8192eu_rpi2/workbench/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-
+#PREFIX	= /home/asiris/workbench/pi/wifi/rtl8192eu_rpi2/workbench/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-
+PREFIX	=
 #DEBUG	= -g -O0
 DEBUG	= -O2
 CC	= $(PREFIX)gcc
