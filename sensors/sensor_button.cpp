@@ -5,12 +5,6 @@
 #include "sensor_button.hpp"
 #include "../external/wiringPi/wiringPi.h"
 
-
-//void myInterrupt (void)
-//{
-  //++globalCounter ;
-//}
-
 void* button_working_thread(
     void* p_arg)
 {
@@ -57,8 +51,6 @@ void sensor_button_class::activate(
         void)
 {
     pinMode(sensor_gpio_num, INPUT);
-
-    //wiringPiISR (sensor_gpio_num, /*INT_EDGE_FALLING*/INT_EDGE_SETUP, &myInterrupt);
 
     // Create worker thread
     pthread_create(&pth, NULL, button_working_thread, this);

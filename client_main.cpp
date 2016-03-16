@@ -36,10 +36,10 @@ int relay_callback(
 {
     printf("relay_callback\n") ;
 
-    pinMode(2, OUTPUT);
+    /*pinMode(2, OUTPUT);
     digitalWrite(2, 1);
     sleep(1);
-    digitalWrite(2, 0);
+    digitalWrite(2, 0);*/
 
     return 0;
 }
