@@ -25,6 +25,8 @@ public:
 
     virtual void activate (
         void);
+    void show (
+        void);
 };
 
 

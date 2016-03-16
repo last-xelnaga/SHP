@@ -28,6 +28,7 @@ void* button_working_thread(
     printf ("button released\n") ;
 
     p_button_up_cb(p_user_data);
+    p_button->activate();
 
     return NULL;
 }
