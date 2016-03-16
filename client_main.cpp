@@ -48,6 +48,19 @@ int reset_callback(
     return 0;
 }
 
+int relay_callback(
+        const void* p_user_data)
+{
+    printf("relay_callback\n") ;
+
+    pinMode(2, OUTPUT);
+    digitalWrite(2, 1);
+    sleep(1);
+    digitalWrite(2, 0);
+
+    return 0;
+}
+
 int main (
     int argc,
     char **argv)
@@ -69,15 +82,25 @@ int main (
     p_reset_button->set_callback(reset_callback, p_status_led);
     p_reset_button->activate();
 
-    int i = 10;
-    while (i --)
+    sensor_dht11_class* p_dth11 = new sensor_dht11_class(9, "temp");
+    p_dth11->activate();
+
+    sensor_button_class* p_relay_button = new sensor_button_class(7, "reset");
+    p_relay_button->set_callback(relay_callback, NULL);
+    p_relay_button->activate();
+
+    //int i = 10;
+    while (1 /*i --*/)
     {
-        reset_callback(p_status_led);
-        sleep(1);
+        //reset_callback(p_status_led);
+        p_dth11->show();
+        sleep(2);
     }
 
+    delete p_relay_button;
     delete p_reset_button;
     delete p_status_led;
+    delete p_dth11;
 
     return 0;
 }
