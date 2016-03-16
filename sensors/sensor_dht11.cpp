@@ -10,7 +10,7 @@ sensor_dht11_class::sensor_dht11_class (
     const char* p_name)
 {
     sensor_gpio_num = gpio_num;
-    strcpy(p_sensor_name, p_name);
+    strcpy (p_sensor_name, p_name);
 
 
 }
@@ -32,8 +32,8 @@ void sensor_dht11_class::prepare_bus (
 {
     // pull the bus high. this one will show to sensor
     // that it could stay in low-power-consumption mode
-    pinMode(sensor_gpio_num, OUTPUT);
-    digitalWrite(sensor_gpio_num, HIGH);
+    pinMode (sensor_gpio_num, OUTPUT);
+    digitalWrite (sensor_gpio_num, HIGH);
 }
 
 void sensor_dht11_class::get_data (

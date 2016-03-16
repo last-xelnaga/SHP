@@ -1,30 +1,13 @@
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
 
 #include "config.hpp"
+#include "sensors/sensor_manager.hpp"
 #include "sensors/sensor_button.hpp"
 #include "sensors/sensor_led.hpp"
 #include "sensors/sensor_dht11.hpp"
-
-#include "external/wiringPi/wiringPi.h"
-
-void setup (
-    void)
-{
-    if (geteuid() != 0)
-    {
-        printf("Need to be root to run\n");
-        exit(0);
-    }
-
-    if (wiringPiSetup() == -1)
-        exit(1);
-
-    printf("setup OK\n") ;
-}
 
 int led_works = 0;
 
@@ -60,7 +43,7 @@ int main (
 
     Config::instance()->read_config("shp_client.cfg");
 
-    setup();
+    sensor_manager_class::instance()->setup();
 
     sensor_led_class* p_status_led = new sensor_led_class(0, "status");
     p_status_led->activate();
