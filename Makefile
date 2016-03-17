@@ -13,6 +13,7 @@ SRC	= \
 	sensors/sensor_button.cpp \
 	sensors/sensor_led.cpp \
 	sensors/sensor_dht11.cpp \
+	sensors/sensor_relay.cpp \
 	sensors/sensor_manager.cpp \
 	client_main.cpp
 
@@ -35,5 +36,7 @@ config.o: config.hpp
 sensors/sensor_button.o: sensors/sensor_button.hpp sensors/sensor.hpp
 sensors/sensor_led.o: sensors/sensor_led.hpp sensors/sensor.hpp
 sensors/sensor_dht11.o: sensors/sensor_dht11.hpp sensors/sensor.hpp
+sensors/sensor_relay.o: sensors/sensor_relay.hpp sensors/sensor.hpp
+
 sensors/sensor_manager.o: sensors/sensor_manager.hpp sensors/sensor.hpp
-client_main.o: config.hpp sensors/sensor_button.hpp sensors/sensor_led.hpp sensors/sensor_manager.hpp
+client_main.o: config.hpp sensors/sensor_button.hpp sensors/sensor_led.hpp sensors/sensor_dht11.hpp sensors/sensor_relay.hpp sensors/sensor_manager.hpp

@@ -8,10 +8,11 @@
 #include "sensors/sensor_button.hpp"
 #include "sensors/sensor_led.hpp"
 #include "sensors/sensor_dht11.hpp"
+#include "sensors/sensor_relay.hpp"
 
 int led_works = 0;
 
-int reset_callback(
+int reset_callback (
         const void* p_user_data)
 {
     sensor_led_class* p_status_led = (sensor_led_class*) p_user_data;
@@ -31,15 +32,15 @@ int reset_callback(
     return 0;
 }
 
-int relay_callback(
+int relay_callback (
         const void* p_user_data)
 {
     printf("relay_callback\n") ;
+    sensor_relay_class* p_relay = (sensor_relay_class*) p_user_data;
 
-    /*pinMode(2, OUTPUT);
-    digitalWrite(2, 1);
+    p_relay->switch_on();
     sleep(1);
-    digitalWrite(2, 0);*/
+    p_relay->switch_off();
 
     return 0;
 }
@@ -49,10 +50,10 @@ int main (
     char **argv)
 {
     // ignore SIGPIPE signal
-    /*if (SIG_ERR == signal(SIGPIPE, SIG_IGN))
+    if (SIG_ERR == signal(SIGPIPE, SIG_IGN))
     {
         return -1;
-    }*/
+    }
 
     Config::instance()->read_config("shp_client.cfg");
 
@@ -68,8 +69,11 @@ int main (
     sensor_dht11_class* p_dth11 = new sensor_dht11_class(9, "temp");
     p_dth11->activate();
 
+    sensor_relay_class* p_relay = new sensor_relay_class(2, "relay");
+    p_relay->activate();
+
     sensor_button_class* p_relay_button = new sensor_button_class(7, "reset");
-    p_relay_button->set_callback(relay_callback, NULL);
+    p_relay_button->set_callback(relay_callback, p_relay);
     p_relay_button->activate();
 
     //int i = 10;
@@ -84,6 +88,7 @@ int main (
     delete p_reset_button;
     delete p_status_led;
     delete p_dth11;
+    delete p_relay;
 
     return 0;
 }
