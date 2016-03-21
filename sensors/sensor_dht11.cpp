@@ -92,7 +92,7 @@ void sensor_dht11_class::get_data (
 
     prepare_bus ();
 
-    printf("temp %i.%i, hum %i.%i, crc %i\n", data[0], data[1], data[2], data[3], data[4]);
+    printf("temp %s\t%i.%i, hum %i.%i, crc %i\n", p_sensor_name, data[0], data[1], data[2], data[3], data[4]);
 }
 
 void sensor_dht11_class::show (

@@ -13,7 +13,7 @@ void* button_working_thread(
     void* p_user_data = NULL;
     button_up_cb p_button_up_cb = p_button->get_callback(&p_user_data);
 
-    printf("Waiting for button ... ");
+    printf("Waiting for button ...\n");
     while(digitalRead(sensor_gpio_num) == HIGH)
         delay(100);
     printf ("button pressed\n") ;
@@ -54,5 +54,5 @@ void sensor_button_class::activate(
 
     // Create worker thread
     pthread_create(&pth, NULL, button_working_thread, this);
-    printf("button working thread create\n");
+    printf("%s button working thread create\n", p_sensor_name);
 }
