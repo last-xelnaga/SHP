@@ -11,7 +11,7 @@ void* button_working_thread(
     sensor_button_class* p_button = (sensor_button_class*)p_arg;
     unsigned char sensor_gpio_num = p_button->get_gpio_num();
     void* p_user_data = NULL;
-    button_up_cb p_button_up_cb = p_button->get_callback(&p_user_data);
+    trigger_cb p_button_up_cb = p_button->get_callback(&p_user_data);
 
     printf("Waiting for button ...\n");
     while(digitalRead(sensor_gpio_num) == HIGH)
@@ -27,12 +27,12 @@ void* button_working_thread(
     return NULL;
 }
 
-sensor_button_class::sensor_button_class(
+sensor_button_class::sensor_button_class (
     unsigned char gpio_num,
-    const char* p_name)
+    const char* p_name) : sensor_trigger_class(gpio_num, p_name)
 {
-    sensor_gpio_num = gpio_num;
-    strcpy(p_sensor_name, p_name);
+    //sensor_gpio_num = gpio_num;
+    //strcpy(p_sensor_name, p_name);
 }
 
 sensor_button_class::~sensor_button_class(

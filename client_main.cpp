@@ -93,7 +93,7 @@ int main (
     p_pir->activate();
 
     sensor_button_class* p_reset_button = new sensor_button_class(8, "reset");
-    p_reset_button->set_callback(reset_callback, p_status_led);
+    p_reset_button->set_trigger_cb(reset_callback, p_status_led);
     p_reset_button->activate();
 
     sensor_dht11_class* p_dth11 = new sensor_dht11_class(9, "temp1");
@@ -109,11 +109,11 @@ int main (
     p_relay2->activate();
 
     sensor_button_class* p_relay_button = new sensor_button_class(7, "p_relay_button");
-    p_relay_button->set_callback(relay_callback, p_relay);
+    p_relay_button->set_trigger_cb(relay_callback, p_relay);
     p_relay_button->activate();
 
     sensor_button_class* p_relay_button2 = new sensor_button_class(21, "p_relay_button2");
-    p_relay_button2->set_callback(relay_callback, p_relay2);
+    p_relay_button2->set_trigger_cb(relay_callback, p_relay2);
     p_relay_button2->activate();
 
 
