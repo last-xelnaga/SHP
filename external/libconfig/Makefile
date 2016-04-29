@@ -2,15 +2,15 @@
 PREFIX	=
 CC	= $(PREFIX)gcc
 
-CFLAGS	= -Wall -I. -O2
+CFLAGS	= -Wall -Ilib -O2
 LIB	= libconfig.a
 
 SRC	= \
-	libconfig.c \
-	scanctx.c \
-	scanner.c \
-	strbuf.c \
-	grammar.c
+	lib/libconfig.c \
+	lib/scanctx.c \
+	lib/scanner.c \
+	lib/strbuf.c \
+	lib/grammar.c
 
 OBJ	= $(SRC:.c=.o)
 
@@ -26,5 +26,4 @@ $(LIB): $(OBJ)
 	$(PREFIX)ranlib $@
 
 clean:
-	rm -f *.o $(LIB)
-
+	rm -f lib/*.o $(LIB)
