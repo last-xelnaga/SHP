@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "sensor_flame.hpp"
-#include "../external/wiringPi/wiringPi.h"
+#include "wiringPi.h"
 
 void* flame_working_thread(
     void* p_arg)

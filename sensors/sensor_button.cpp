@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "sensor_button.hpp"
-#include "../external/wiringPi/wiringPi.h"
+#include "wiringPi.h"
 
 void* button_working_thread(
     void* p_arg)

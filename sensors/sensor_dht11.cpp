@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "sensor_dht11.hpp"
-#include "../external/wiringPi/wiringPi.h" 
+#include "wiringPi.h" 
 
 sensor_dht11_class::sensor_dht11_class (
     unsigned char gpio_num,
@@ -43,7 +43,7 @@ void sensor_dht11_class::get_data (
     // pull the bus down
     digitalWrite (sensor_gpio_num, LOW);
     // and wait at least 18ms
-    delay (30); 
+    delay (30);
 
     // now pull the bus up
     digitalWrite (sensor_gpio_num, HIGH);

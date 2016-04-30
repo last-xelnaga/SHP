@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #include "sensor_manager.hpp"
-#include "../external/wiringPi/wiringPi.h"
+#include "wiringPi.h"
 
 sensor_manager_class *sensor_manager_class::p_instance = 0;
 
@@ -32,4 +32,4 @@ int sensor_manager_class::setup (
     }
 
     return result;
-} 
+}

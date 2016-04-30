@@ -3,10 +3,18 @@ PREFIX	=
 -include Make_client
 
 CC	= $(PREFIX)g++
-INC	= -I.
 CFLAGS	= -Wall -O2 -fno-omit-frame-pointer
-LIB	= -Lexternal/libconfig -lconfig -Lexternal/wiringPi -lwiringPi -lpthread
-#CFLAGS+=-Wall -ggdb 
+#CFLAGS+=-Wall -ggdb
+INC = -I.
+LIB = -lpthread
+
+# libconfig
+INC	+= -Iexternal/libconfig/lib
+LIB	+= -Lexternal/libconfig -lconfig
+
+# wiringPi
+INC += -Iexternal/wiringPi/wiringPi
+LIB += -Lexternal/wiringPi/wiringPi -lwiringPi
 
 SRC	= \
 	config.cpp \

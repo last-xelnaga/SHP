@@ -2,7 +2,7 @@
 #include <string.h>
 
 #include "config.hpp"
-#include "external/libconfig/libconfig.h"
+#include "libconfig.h"
 
 Config *Config::p_instance = 0;
 

@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "sensor_pir.hpp"
-#include "../external/wiringPi/wiringPi.h"
+#include "wiringPi.h"
 
 void* pir_working_thread(
     void* p_arg)
@@ -58,4 +58,3 @@ void sensor_pir_class::activate(
     pthread_create(&pth, NULL, pir_working_thread, this);
     printf("button working thread create\n");
 }
-

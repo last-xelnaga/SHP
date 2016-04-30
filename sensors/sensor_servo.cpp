@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "sensor_servo.hpp"
-#include "../external/wiringPi/wiringPi.h"
+#include "wiringPi.h"
 
 sensor_servo_class::sensor_servo_class (
     unsigned char gpio_num,

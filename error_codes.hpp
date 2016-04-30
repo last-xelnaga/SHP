@@ -8,12 +8,13 @@ typedef enum
     // all operations were successufully finished
     RESULT_OK = 0,
 
-    //
+    // system function failed
     RESULT_SYSTEM_ERROR,
 
     // one of the parameters was invalid
     RESULT_INVALID_PARAM,
 
+    // we should not be here
     RESULT_INVALID_STATE,
 
     // do not have valid permissions
@@ -22,7 +23,7 @@ typedef enum
     // memory handling failure
     RESULT_NOT_ENOUGH_MEMORY,
 
-    // socket connection could not be established. client->server
+    // socket connection could not be established.
     RESULT_SOCKET_ERROR,
 
     // connection was created, but the transport has failed.

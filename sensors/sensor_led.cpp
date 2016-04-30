@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "sensor_led.hpp"
-#include "../external/wiringPi/wiringPi.h" 
+#include "wiringPi.h" 
 
 sensor_led_class::sensor_led_class(unsigned char gpio_num, const char* p_name) : sensor_class(gpio_num, p_name)
 {
@@ -34,7 +34,7 @@ void sensor_led_class::flash_on(
     unsigned int ms)
 {
     active = 1;
-    // start thread 
+    // start thread
 }
 
 void sensor_led_class::flash_off(
