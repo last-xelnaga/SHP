@@ -46,13 +46,18 @@ error_code_t socket_class::send_data (
         int res = select (fd + 1, NULL, &tempset, NULL, &tv);
         if (res > 0)
         {
-            int sent = send (fd, p_buffer, total_to_send, 0);
+            int sent = send (fd, p_buffer, total_to_send, MSG_NOSIGNAL);
             if (sent < 0)
             {
                 DEBUG_LOG_MESSAGE ("send failed: %s", strerror (errno));
                 result = RESULT_TRANSPORT_ERROR;
             }
-            else if (sent > 0)
+            else if (sent == 0)
+            {
+                DEBUG_LOG_MESSAGE ("send failed. channel is closed");
+                result = RESULT_TRANSPORT_ERROR;
+            }
+            else
             {
                 total_to_send -= sent;
                 p_buffer += sent;
@@ -106,12 +111,18 @@ error_code_t socket_class::recv_data (
             int received = recv (fd, (void*)p_recv_buffer, to_receive - total_received, 0);
             if (received < 0)
             {
+                // error
                 DEBUG_LOG_MESSAGE ("recv failed: %s", strerror (errno));
                 result = RESULT_TRANSPORT_ERROR;
             }
-
-            if (result == RESULT_OK)
+            else if (received == 0)
             {
+                DEBUG_LOG_MESSAGE ("recv failed. channel is closed");
+                result = RESULT_TRANSPORT_ERROR;
+            }
+            else
+            {
+                // ok receive
                 total_received += received;
                 p_recv_buffer += received;
             }
@@ -382,142 +393,7 @@ void server_socket_class::close_client (
 }
 
 
-
 /*
-static error_code_t send_data(
-        int fd, unsigned char* p_buffer,
-        unsigned int total_to_send)
-{
-    error_code_t result = SEC_DAEMON_RESULT_OK;
-    SECD_DEBUG_LOG_TRACE_BEGIN();
-
-    do
-    {
-        int sent = send(fd, p_buffer, total_to_send, 0);
-        if (sent < 0)
-        {
-            SECD_DEBUG_LOG_ERROR("send failed: %s", strerror(errno));
-            result = SEC_DAEMON_SOCKET_ERROR;
-        }
-
-        if (result == SEC_DAEMON_RESULT_OK)
-        {
-            total_to_send -= sent;
-            p_buffer += sent;
-        }
-    } while ((result == SEC_DAEMON_RESULT_OK) && (total_to_send > 0));
-
-    SECD_DEBUG_LOG_TRACE_END(result);
-    return result;
-}
-
-static error_code_t recv_data(
-        int fd, unsigned char* p_buffer,
-        unsigned int to_receive)
-{
-    error_code_t result = SEC_DAEMON_RESULT_OK;
-    unsigned int total_received = 0;
-    unsigned char* p_recv_buffer = (unsigned char*)p_buffer;
-    SECD_DEBUG_LOG_TRACE_BEGIN();
-
-    do
-    {
-        int received = recv(fd, (void*)p_recv_buffer, to_receive - total_received, 0);
-        if (received < 0)
-        {
-            SECD_DEBUG_LOG_ERROR("recv failed: %s", strerror(errno));
-            result = SEC_DAEMON_SOCKET_ERROR;
-        }
-
-        if (result == SEC_DAEMON_RESULT_OK)
-        {
-            total_received += received;
-            p_recv_buffer += received;
-        }
-    } while ((result == SEC_DAEMON_RESULT_OK) && (total_received < to_receive));
-
-    SECD_DEBUG_LOG_TRACE_END(result);
-    return result;
-}
-
-static int create_client_socket(
-        const char* const p_socket_name)
-{
-    int socket_fd = -1;
-    error_code_t result = SEC_DAEMON_RESULT_OK;
-    SECD_DEBUG_LOG_TRACE_BEGIN();
-
-    socket_fd = socket_local_client(p_socket_name,
-            ANDROID_SOCKET_NAMESPACE_RESERVED, SOCK_STREAM);
-    if (socket_fd < 0)
-    {
-        SECD_DEBUG_LOG_ERROR("socket_local_client failed: %s", strerror(errno));
-        result = SEC_DAEMON_SOCKET_ERROR;
-    }
-
-    SECD_DEBUG_LOG_TRACE_END(result);
-    return socket_fd;
-}
-
-static int accept_socket(
-        int fd)
-{
-    int accept_fd = -1;
-    error_code_t result = SEC_DAEMON_RESULT_OK;
-    SECD_DEBUG_LOG_TRACE_BEGIN();
-
-    accept_fd = accept(fd, NULL, NULL);
-    if (accept_fd == -1)
-    {
-        result = SEC_DAEMON_SOCKET_ERROR;
-        SECD_DEBUG_LOG_ERROR("accept failed: %s", strerror(errno));
-    }
-
-    SECD_DEBUG_LOG_TRACE_END(result);
-    return accept_fd;
-}
-
-static void close_socket(
-        int fd)
-{
-    SECD_DEBUG_LOG_TRACE_BEGIN();
-
-    if (fd >= 0)
-    {
-        close(fd);
-    }
-
-    SECD_DEBUG_LOG_TRACE_END(SEC_DAEMON_RESULT_OK);
-}
-
-int server_create_socket(
-        const char *p_socket_name)
-{
-    int socket_fd = -1;
-    error_code_t result = SEC_DAEMON_RESULT_OK;
-    SECD_DEBUG_LOG_TRACE_BEGIN();
-
-    socket_fd = android_get_control_socket(p_socket_name);
-    if (socket_fd == -1)
-    {
-        result = SEC_DAEMON_SOCKET_ERROR;
-        SECD_DEBUG_LOG_ERROR("android_get_control_socket failed: %s", strerror(errno));
-    }
-
-    if (result == SEC_DAEMON_RESULT_OK)
-    {
-        if (listen(socket_fd, CONNECTION_QUEUE_MAX) == -1)
-        {
-            result = SEC_DAEMON_SOCKET_ERROR;
-            close(socket_fd);
-            SECD_DEBUG_LOG_ERROR("listen failed: %s", strerror(errno));
-        }
-    }
-
-    SECD_DEBUG_LOG_TRACE_END(result);
-    return socket_fd;
-}
-
 error_code_t server_accept_and_receive(
         message_buffer_t* const p_message,
         const int listen_fd,
@@ -604,18 +480,6 @@ error_code_t server_send(
         result = send_data(accept_fd, p_message->message_data,
                 p_message->header.payload_size);
     }
-
-    SECD_DEBUG_LOG_ERROR_END(result);
-    return result;
-}
-
-error_code_t server_close_socket(
-        const int accept_fd)
-{
-    error_code_t result = SEC_DAEMON_RESULT_OK;
-    SECD_DEBUG_LOG_TRACE_BEGIN();
-
-    close_socket(accept_fd);
 
     SECD_DEBUG_LOG_ERROR_END(result);
     return result;

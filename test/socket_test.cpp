@@ -36,6 +36,20 @@ void* deaf_server_thread (
     return NULL;
 }
 
+void* channel_closed_server_thread (
+        void* p_arg)
+{
+    unsigned char p_buffer[128];
+    server_socket_class* p_server_socket = (server_socket_class*) p_arg;
+
+    p_server_socket->accept_client ();
+    p_server_socket->recv_data (p_buffer, 1);
+    p_server_socket->close_client ();
+    p_server_socket->close_fd ();
+
+    return NULL;
+}
+
 TEST (socket_test, short_message_success)
 {
     server_socket_class server_socket;
@@ -140,33 +154,6 @@ TEST (socket_test, connect_timeout_negative)
     EXPECT_EQ (RESULT_SOCKET_ERROR, result);
 }
 
-/*TEST (socket_test, send_timeout_negative)
-{
-    server_socket_class server_socket;
-    server_socket.create_fd ();
-
-    //pthread_t pth;
-    //pthread_create (&pth, NULL, server_thread, &server_socket);
-
-    client_socket_class client_socket;
-    client_socket.create_fd ();
-
-    unsigned char p_hello_buffer[] = { 6, 'H', 'E', 'L', 'L', 'O', 0 };
-    unsigned int message_length = 7;
-    //unsigned char p_recv_buffer[7];
-
-    error_code_t result = client_socket.send_data (p_hello_buffer, message_length);
-    //client_socket.recv_data (p_recv_buffer, message_length);
-    //client_socket.close_fd ();
-
-    EXPECT_EQ (RESULT_SOCKET_ERROR, result);
-
-    //pthread_cancel (pth);
-    //pthread_join (pth, NULL);
-    //server_socket.close_client ();
-    server_socket.close_fd ();
-}*/
-
 TEST (socket_test, recv_timeout_negative)
 {
     server_socket_class server_socket;
@@ -188,8 +175,57 @@ TEST (socket_test, recv_timeout_negative)
 
     EXPECT_EQ (RESULT_TRANSPORT_ERROR, result);
 
-    pthread_cancel (pth);
     pthread_join (pth, NULL);
     server_socket.close_client ();
     server_socket.close_fd ();
+}
+
+TEST (socket_test, send_channel_closed_negative)
+{
+    server_socket_class server_socket;
+    server_socket.create_fd ();
+
+    pthread_t pth;
+    pthread_create (&pth, NULL, channel_closed_server_thread, &server_socket);
+
+    client_socket_class client_socket;
+    client_socket.create_fd ();
+
+    unsigned char p_hello_buffer[] = { 6, 'H', 'E', 'L', 'L', 'O', 0 };
+    unsigned int message_length = 7;
+
+    client_socket.send_data (p_hello_buffer, 1);
+
+    pthread_join (pth, NULL);
+
+    error_code_t result = client_socket.send_data (p_hello_buffer, 1);
+    result = client_socket.send_data (p_hello_buffer, message_length);
+    client_socket.close_fd ();
+
+    EXPECT_EQ (RESULT_TRANSPORT_ERROR, result);
+}
+
+TEST (socket_test, recv_channel_closed_negative)
+{
+    server_socket_class server_socket;
+    server_socket.create_fd ();
+
+    pthread_t pth;
+    pthread_create (&pth, NULL, channel_closed_server_thread, &server_socket);
+
+    client_socket_class client_socket;
+    client_socket.create_fd ();
+
+    unsigned char p_hello_buffer[] = { 6, 'H', 'E', 'L', 'L', 'O', 0 };
+    unsigned int message_length = 7;
+    unsigned char p_recv_buffer[7];
+
+    client_socket.send_data (p_hello_buffer, 1);
+
+    pthread_join (pth, NULL);
+
+    error_code_t result = client_socket.recv_data (p_recv_buffer, message_length);
+    client_socket.close_fd ();
+
+    EXPECT_EQ (RESULT_TRANSPORT_ERROR, result);
 }
