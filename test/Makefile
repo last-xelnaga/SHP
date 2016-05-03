@@ -7,9 +7,12 @@ CFLAGS	= -Wall -O2 -fno-omit-frame-pointer -DDEBUG -DDEBUG_TAG="---TEST---"
 LIB	= -L../external/gtest -lgtest -lpthread
 
 SRC	= \
-	socket_test.cpp \
+	../debug.cpp \
+	../message.cpp \
+	message_test.cpp \
 	../socket.cpp \
-	../debug.cpp
+	socket_test.cpp
+
 
 OBJ=$(SRC:.cpp=.o)
 
@@ -25,3 +28,10 @@ test_shared: $(OBJ)
 
 clean:
 	rm -f *.o ../*.o test_shared
+
+socket_test.o: socket_test.cpp ../socket.cpp
+message_test.o: message_test.cpp ../message.cpp
+
+../socket.cpp: ../socket.hpp ../debug.cpp
+../message.cpp: ../message.hpp ../debug.cpp
+../debug.cpp: ../debug.hpp

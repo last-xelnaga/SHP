@@ -5,3 +5,4 @@
 *.so.*
 Make_client
 shp_client
+test_shared
