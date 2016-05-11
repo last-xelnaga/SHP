@@ -17,7 +17,7 @@ public:
         const char* p_name)
     {
         sensor_gpio_num = gpio_num;
-        strcpy(p_sensor_name, p_name);
+        strcpy (p_sensor_name, p_name);
     }
 
     virtual ~sensor_class (
@@ -79,4 +79,3 @@ public:
 };
 
 #endif // SENSOR_HPP
- 

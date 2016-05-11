@@ -4,17 +4,15 @@
 #include <signal.h>
 
 #include "config.hpp"
-#include "sensors/sensor_manager.hpp"
-#include "sensors/sensor_button.hpp"
-#include "sensors/sensor_led.hpp"
-#include "sensors/sensor_dht11.hpp"
-#include "sensors/sensor_relay.hpp"
-#include "sensors/sensor_pir.hpp"
+#include "sensor_manager.hpp"
+#include "queue_manager.hpp"
+#include "debug.hpp"
+#include "socket.hpp"
 
 int led_works = 0;
 int led_works2 = 0;
 
-int reset_callback (
+/*int reset_callback (
         const void* p_user_data)
 {
     sensor_led_class* p_status_led = (sensor_led_class*) p_user_data;
@@ -45,9 +43,9 @@ int relay_callback (
     p_relay->switch_off();
 
     return 0;
-}
+}*/
 
-int pir_callback (
+/*int pir_callback (
         const void* p_user_data)
 {
     sensor_led_class* p_status_led = (sensor_led_class*) p_user_data;
@@ -65,24 +63,29 @@ int pir_callback (
     }
 
     return 0;
-}
+}*/
 
 
 int main (
     int argc,
     char **argv)
 {
-    // ignore SIGPIPE signal
-    if (SIG_ERR == signal(SIGPIPE, SIG_IGN))
+    config_class::instance()->read_config ("shp_client.cfg");
+
+    std::vector <sensor_settings_t>::const_iterator sensor;
+    for (sensor = config_class::instance ()->sensors.begin(); sensor != config_class::instance ()->sensors.end(); ++ sensor)
     {
-        return -1;
+        sensor_manager_class::instance()->add_sensor (sensor->p_name, sensor->gpio, sensor->p_type);
     }
 
-    Config::instance()->read_config("shp_client.cfg");
+    client_socket_class client_socket (config_class::instance ()->network.p_address,
+            config_class::instance ()->network.port);
+    client_socket.create_fd ();
 
-    sensor_manager_class::instance()->setup();
+    queue_manager_class::instance ()->set_socket (&client_socket);
+    queue_manager_class::instance ()->run ();
 
-    sensor_led_class* p_status_led = new sensor_led_class(0, "status");
+    /*sensor_led_class* p_status_led = new sensor_led_class(0, "status");
     p_status_led->activate();
 
     sensor_led_class* p_status_led_pir = new sensor_led_class(22, "status");
@@ -97,12 +100,12 @@ int main (
     p_reset_button->activate();
 
     sensor_dht11_class* p_dth11 = new sensor_dht11_class(9, "temp1");
-    p_dth11->activate();
+    p_dth11->activate();*/
 
     //sensor_dht11_class* p_dth112 = new sensor_dht11_class(3, "temp2");
     //p_dth112->activate();
 
-    sensor_relay_class* p_relay = new sensor_relay_class(2, "relay");
+    /*sensor_relay_class* p_relay = new sensor_relay_class(2, "relay");
     p_relay->activate();
 
     sensor_relay_class* p_relay2 = new sensor_relay_class(1, "relay");
@@ -114,12 +117,12 @@ int main (
 
     sensor_button_class* p_relay_button2 = new sensor_button_class(21, "p_relay_button2");
     p_relay_button2->set_trigger_cb(relay_callback, p_relay2);
-    p_relay_button2->activate();
+    p_relay_button2->activate();*/
 
 
 
     //int i = 10;
-    while (1 /*i --*/)
+/*while (1 *//*i --*//*)
     {
         p_dth11->show();
         //p_dth112->show();
@@ -135,7 +138,7 @@ int main (
     delete p_dth11;
     //delete p_dth112;
     delete p_relay;
-    delete p_relay2;
+    delete p_relay2;*/
 
     return 0;
 }

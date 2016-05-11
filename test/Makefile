@@ -10,7 +10,7 @@ SRC	= \
 	../debug.cpp \
 	../message.cpp \
 	message_test.cpp \
-	../socket.cpp \
+	#../socket.cpp \
 	socket_test.cpp
 
 
@@ -29,9 +29,5 @@ test_shared: $(OBJ)
 clean:
 	rm -f *.o ../*.o test_shared
 
-socket_test.o: socket_test.cpp ../socket.cpp
-message_test.o: message_test.cpp ../message.cpp
-
-../socket.cpp: ../socket.hpp ../debug.cpp
-../message.cpp: ../message.hpp ../debug.cpp
-../debug.cpp: ../debug.hpp
+socket_test.o: socket_test.cpp ../socket.cpp ../socket.hpp ../debug.cpp ../debug.hpp
+message_test.o: message_test.cpp ../message.cpp ../message.hpp ../debug.cpp ../debug.hpp

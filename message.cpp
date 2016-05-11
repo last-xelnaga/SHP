@@ -4,11 +4,156 @@
 #include "debug.hpp"
 
 
-#ifndef MAX
-  #define MAX(a, b)               ((a) > (b) ? (a) : (b))
-#endif // MAX
+// socket protocol version
+#define CURRENT_MESSAGE_VERSION     1
 
-error_code_t init_message (
+//#ifndef MAX
+//  #define MAX(a, b)               ((a) > (b) ? (a) : (b))
+//#endif // MAX
+
+
+// header structure. every message starts with this object.
+// it describes the message: version, operation and payload strim,
+// that will have all needed data in TLV format.
+// all data use little endian.
+/*typedef struct
+{
+    unsigned char message_version;
+    unsigned int message_id;
+    unsigned int payload_size;
+    unsigned int message_result;
+}__attribute__((__packed__)) message_header_t;*/
+
+
+/*error_code_t message_class::add_payload (
+        payload_class* p_payload)
+{
+    error_code_t result = RESULT_OK;
+    message_header_t message;
+    DEBUG_LOG_TRACE_BEGIN
+
+    if (p_payload == NULL)
+    {
+        DEBUG_LOG_MESSAGE ("p_payload == NULL");
+        result = RESULT_INVALID_PARAM;
+    }
+
+    // init
+    if (result == RESULT_OK)
+    {
+        unsigned int payload_length = p_payload->get_buffer_length ();
+        message.message_version = CURRENT_MESSAGE_VERSION;
+        //message.message_id = message_id;
+        message.payload_size = payload_length;
+        message.message_result = RESULT_OK;
+
+        if (p_buffer != NULL)
+            delete[] p_buffer;
+        p_buffer = new unsigned char[sizeof (message_header_t) + payload_length];
+
+        memcpy (p_buffer, &message, sizeof (message));
+        memcpy (&p_buffer[sizeof (message)], p_payload->get_buffer (),
+                payload_length);
+    }
+
+    DEBUG_LOG_TRACE_END (result)
+    return result;
+}
+
+error_code_t message_class::get_payload (
+        payload_class** p_payload)
+{
+    error_code_t result = RESULT_OK;
+    DEBUG_LOG_TRACE_BEGIN
+
+    if (p_buffer == NULL)
+    {
+        DEBUG_LOG_MESSAGE ("nothing to parse");
+        result = RESULT_INVALID_STATE;
+    }
+
+    if (result == RESULT_OK)
+    {
+        if (p_payload != NULL && *p_payload == NULL)
+        {
+            DEBUG_LOG_MESSAGE ("p_payload is invalid");
+            result = RESULT_INVALID_PARAM;
+        }
+    }
+
+    if (result == RESULT_OK)
+    {
+        // message.message_id = message_id;
+        //p_payload = new message_payload_class ();
+    }
+
+    DEBUG_LOG_TRACE_END (result)
+    return result;
+}*/
+
+
+
+
+message_class::message_class (
+        message_id_t type)
+{
+    DEBUG_LOG_TRACE_BEGIN
+
+    header.message_version = CURRENT_MESSAGE_VERSION;
+    header.message_id = type;
+    header.payload_size = 0;
+    header.message_result = RESULT_OK;
+
+    p_raw_payload = NULL;
+
+    DEBUG_LOG_TRACE_END (RESULT_OK)
+}
+
+message_class::~message_class (
+        void)
+{
+    DEBUG_LOG_TRACE_BEGIN
+
+    if (p_raw_payload != NULL)
+        delete[] p_raw_payload;
+
+    DEBUG_LOG_TRACE_END (RESULT_OK)
+}
+
+
+
+void message_class::set_raw_message (
+        unsigned char* p_raw_message,
+        unsigned int raw_message_length)
+{
+    DEBUG_LOG_TRACE_BEGIN
+
+    if (p_raw_payload != NULL)
+        delete[] p_raw_payload;
+
+    memcpy (&header, p_raw_message, sizeof (header));
+    unsigned int raw_payload_length = raw_message_length - sizeof (header);
+
+    if (header.payload_size != raw_payload_length)
+    {
+        DEBUG_LOG_MESSAGE ("raw_message_length was wrong");
+        update_header (raw_payload_length);
+    }
+
+    p_raw_payload = new unsigned char[raw_payload_length];
+    memcpy (p_raw_payload, &p_raw_message[sizeof (header)], raw_payload_length);
+
+    DEBUG_LOG_TRACE_END (RESULT_OK)
+}
+
+
+
+
+
+
+
+
+/*error_code_t init_message (
         message_buffer_t* const p_message,
         const message_id_t message_id)
 {
@@ -187,4 +332,4 @@ void destroy_message (
     p_message->header.payload_size = 0;
 
     DEBUG_LOG_TRACE_END (RESULT_OK)
-}
+}*/
