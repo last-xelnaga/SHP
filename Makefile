@@ -3,9 +3,12 @@ PREFIX	=
 -include Make_client
 
 CC	= $(PREFIX)g++
-CFLAGS	= -Wall -O2 -fno-omit-frame-pointer -DDEBUG -DDEBUG_TAG="[client]"
-#CFLAGS	+= -DTRACE -DDATA
-#CFLAGS += -ggdb
+
+CFLAGS	= -Wall -DDEBUG -DDEBUG_TAG="client"
+CFLAGS	+= -O2 -fno-omit-frame-pointer
+CFLAGS	+= -DTRACE -DDATA
+#CFLAGS	+= -ggdb
+
 INC = -I.
 LIB = -lpthread
 
@@ -17,6 +20,7 @@ LIB	+= -Lexternal/libconfig -lconfig
 INC += -Iexternal/wiringPi/wiringPi
 LIB += -Lexternal/wiringPi/wiringPi -lwiringPi
 
+# sensors
 SRC	= \
 	sensors/sensor_button.cpp \
 	sensors/sensor_led.cpp \
@@ -24,14 +28,17 @@ SRC	= \
 	sensors/sensor_relay.cpp \
 	sensors/sensor_pir.cpp \
 	sensors/sensor_flame.cpp \
-	sensors/sensor_servo.cpp \
+	sensors/sensor_servo.cpp
+
+# main
+SRC	+= \
 	client_main.cpp \
 	config.cpp \
 	debug.cpp \
 	message.cpp \
-	socket.cpp \
 	queue_manager.cpp \
-	sensor_manager.cpp
+	sensor_manager.cpp \
+	socket.cpp
 
 OBJ=$(SRC:.cpp=.o)
 
@@ -48,14 +55,20 @@ shp_client: $(OBJ)
 clean:
 	rm -f *.o sensors/*.o shp_client
 
-sensors/sensor_button.o: sensors/sensor_button.hpp sensors/sensor.hpp
-sensors/sensor_led.o: sensors/sensor_led.hpp sensors/sensor.hpp
-sensors/sensor_dht11.o: sensors/sensor_dht11.hpp sensors/sensor.hpp
-sensors/sensor_relay.o: sensors/sensor_relay.hpp sensors/sensor.hpp
-sensors/sensor_pir.o: sensors/sensor_pir.hpp sensors/sensor.hpp
-sensors/sensor_flame.o: sensors/sensor_flame.hpp sensors/sensor.hpp
-sensors/sensor_servo.o: sensors/sensor_servo.hpp sensors/sensor.hpp
+# sensors
+sensors/sensor_button.o: sensors/sensor_button.hpp sensors/sensor.hpp Makefile
+sensors/sensor_led.o: sensors/sensor_led.hpp sensors/sensor.hpp Makefile
+sensors/sensor_dht11.o: sensors/sensor_dht11.hpp sensors/sensor.hpp Makefile
+sensors/sensor_relay.o: sensors/sensor_relay.hpp sensors/sensor.hpp Makefile
+sensors/sensor_pir.o: sensors/sensor_pir.hpp sensors/sensor.hpp Makefile
+sensors/sensor_flame.o: sensors/sensor_flame.hpp sensors/sensor.hpp Makefile
+sensors/sensor_servo.o: sensors/sensor_servo.hpp sensors/sensor.hpp Makefile
 
-config.o: config.hpp
-sensor_manager.o: sensor_manager.hpp sensors/sensor.hpp
-client_main.o: config.hpp sensors/sensor_button.hpp sensors/sensor_led.hpp sensors/sensor_dht11.hpp sensors/sensor_relay.hpp sensors/sensor_pir.hpp sensor_manager.hpp
+# main
+client_main.o: config.hpp socket.hpp debug.hpp sensor_manager.hpp queue_manager.hpp error_codes.hpp Makefile
+config.o: config.hpp debug.hpp error_codes.hpp Makefile
+debug.o: debug.hpp error_codes.hpp Makefile
+message.o: message.hpp debug.hpp error_codes.hpp Makefile
+queue_manager.o: queue_manager.hpp Makefile
+sensor_manager.o: sensor_manager.hpp sensors/sensor_button.hpp sensors/sensor_led.hpp sensors/sensor_dht11.hpp sensors/sensor_relay.hpp sensors/sensor_pir.hpp sensors/sensor.hpp debug.hpp error_codes.hpp Makefile
+socket.o: socket.hpp debug.hpp error_codes.hpp Makefile
