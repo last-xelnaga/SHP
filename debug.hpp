@@ -10,6 +10,8 @@
 #define DEBUG_TAG_NAME              STR(DEBUG_TAG)
 
 
+extern int level;
+
 // prototypes for the Messages
 #ifdef DEBUG
 #define DEBUG_LOG_MESSAGE(...)                                  \
@@ -24,11 +26,14 @@
 #ifdef TRACE
 #define DEBUG_LOG_TRACE_BEGIN                                   \
     debug_log_print (DEBUG_TAG_NAME, get_filename (__FILE__),   \
-            __LINE__, "%s() started.", __FUNCTION__);
+            __LINE__, "%s() started.", __FUNCTION__);           \
+            ++ level;
 #define DEBUG_LOG_TRACE_END(__res)                              \
+    -- level;                                                   \
     debug_log_print (DEBUG_TAG_NAME, get_filename (__FILE__),   \
             __LINE__, "%s() ended. result %d - %s",             \
             __FUNCTION__, __res, get_error_msg (__res));
+
 #else
     #define DEBUG_LOG_TRACE_BEGIN
     #define DEBUG_LOG_TRACE_END(__res)
