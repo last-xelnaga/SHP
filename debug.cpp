@@ -4,7 +4,7 @@
 #include <stdarg.h>
 #include "debug.hpp"
 
-#define MAX_ERROR_MSG_SIZE          64
+#define MAX_ERROR_MSG_SIZE          32
 #define MAX_LOG_MSG_SIZE            1024
 
 // size of array
@@ -20,7 +20,7 @@ typedef struct
     char error_msg [MAX_ERROR_MSG_SIZE];
 } error_code_message_t;
 
-static const error_code_message_t secd_errors_arr[] =
+static const error_code_message_t secd_errors_arr [] =
 {
     {
         RESULT_OK, "RESULT_OK"
@@ -49,14 +49,14 @@ static const error_code_message_t secd_errors_arr[] =
 };
 
 
-int level;
+int debug_level;
 bool is_initialized = false;
 static char p_debug_level_buffer [INTEND_DEPTH * INTEND_SIZE + 1];
 
 void level_debug_init (
         void)
 {
-    level = 0;
+    debug_level = 0;
     memset (p_debug_level_buffer, ' ', sizeof (p_debug_level_buffer));
     p_debug_level_buffer [INTEND_DEPTH * INTEND_SIZE] = 0;
     is_initialized = true;
@@ -99,19 +99,21 @@ void debug_log_print (
         level_debug_init ();
     }
 
-    if (level > INTEND_DEPTH)
+    if (debug_level > INTEND_DEPTH)
     {
-        level = INTEND_DEPTH;
+        debug_level = INTEND_DEPTH;
     }
 
     va_list args;
     va_start (args, text);
     vsnprintf (buffer, MAX_LOG_MSG_SIZE, text, args);
-    printf ("[%s] %25s:%-4d  %s%s\n", p_tag, p_filename, line, &p_debug_level_buffer [sizeof (p_debug_level_buffer) - level * INTEND_SIZE], buffer);
+    printf ("[%s] %25s:%-4d  %s%s\n", p_tag, p_filename, line,
+            &p_debug_level_buffer [sizeof (p_debug_level_buffer) - debug_level * INTEND_SIZE],
+            buffer);
     va_end (args);
 }
 
-#ifdef DEBUG_DATA
+#ifdef DATA
 void debug_log_print_array (
         const char* p_tag,
         const char* p_header,
@@ -173,4 +175,4 @@ void debug_log_print_array (
     }
 }
 
-#endif // DEBUG_DATA
+#endif // DATA
