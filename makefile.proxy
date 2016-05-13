@@ -2,44 +2,44 @@ PREFIX	=
 
 -include Make_client
 
+OBJDIR = obj_proxy
+TARGET = shp_proxy
 CC	= $(PREFIX)g++
 
 CFLAGS	= -Wall -DDEBUG -DDEBUG_TAG="proxy"
-CFLAGS	+= -O2 -fno-omit-frame-pointer
+#CFLAGS	+= -O2 -fno-omit-frame-pointer
 CFLAGS	+= -DTRACE -DDATA
-#CFLAGS	+= -ggdb
+CFLAGS	+= -ggdb
 
 INC = -I.
 
 # main
-SRC	+= \
+SRC	= \
 	proxy_main.cpp \
 	debug.cpp \
 	message.cpp \
 	socket.cpp
 
-OBJ=$(SRC:.cpp=.o)
+OBJ = $(SRC:%.cpp=$(OBJDIR)/%.o)
 
-%.o: %.cpp
-	$(CC) $(CFLAGS) $(INC) -c -o obj_proxy/$@ $<
+$(OBJDIR)/%.o: %.cpp
+	$(CC) $(CFLAGS) $(INC) -c -o $@ $<
 
 .PHONY: all clean
 
-all: shp_proxy
+all: $(TARGET)
 
-obj_proxy:
-	mkdir -p obj_proxy/sensors
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
 
-shp_proxy: obj_proxy $(OBJ)
-	$(CC) -o $@ $(foreach OBJ, $(OBJ), obj_proxy/$(OBJ)) $(LIB)
+$(TARGET): $(OBJDIR) $(OBJ)
+	$(CC) -o $@ $(OBJ)
 
 clean:
-	rm -rf obj_proxy shp_proxy
+	rm -rf $(OBJDIR) $(TARGET)
 
 # main
-proxy_main.o: config.hpp socket.hpp debug.hpp sensor_manager.hpp queue_manager.hpp error_codes.hpp Makefile
-config.o: config.hpp debug.hpp error_codes.hpp Makefile
-debug.o: debug.hpp error_codes.hpp Makefile
-message.o: message.hpp debug.hpp error_codes.hpp Makefile
-queue_manager.o: queue_manager.hpp Makefile
-socket.o: socket.hpp debug.hpp error_codes.hpp Makefile
+$(OBJDIR)/proxy_main.o: config.hpp socket.hpp debug.hpp error_codes.hpp makefile.proxy
+$(OBJDIR)/debug.o: debug.hpp error_codes.hpp makefile.proxy
+$(OBJDIR)/message.o: message.hpp debug.hpp error_codes.hpp makefile.proxy
+$(OBJDIR)/socket.o: socket.hpp debug.hpp error_codes.hpp makefile.proxy

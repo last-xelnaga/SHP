@@ -2,12 +2,14 @@ PREFIX	=
 
 -include Make_client
 
+OBJDIR = obj_client
+TARGET = shp_client
 CC	= $(PREFIX)g++
 
 CFLAGS	= -Wall -DDEBUG -DDEBUG_TAG="client"
-CFLAGS	+= -O2 -fno-omit-frame-pointer
+#CFLAGS	+= -O2 -fno-omit-frame-pointer
 CFLAGS	+= -DTRACE -DDATA
-#CFLAGS	+= -ggdb
+CFLAGS	+= -ggdb
 
 INC = -I.
 LIB = -lpthread
@@ -40,38 +42,38 @@ SRC	+= \
 	sensor_manager.cpp \
 	socket.cpp
 
-OBJ=$(SRC:.cpp=.o)
+OBJ = $(SRC:%.cpp=$(OBJDIR)/%.o)
 
-%.o: %.cpp
-	$(CC) $(CFLAGS) $(INC) -c -o obj_client/$@ $<
+$(OBJDIR)/%.o: %.cpp
+	$(CC) $(CFLAGS) $(INC) -c -o $@ $<
 
 .PHONY: all clean
 
-all: shp_client
+all: $(TARGET)
 
-obj_client:
-	mkdir -p obj_client/sensors
+$(OBJDIR):
+	mkdir -p $(OBJDIR)/sensors
 
-shp_client: obj_client $(OBJ)
-	$(CC) -o $@ $(foreach OBJ, $(OBJ), obj_client/$(OBJ)) $(LIB)
+$(TARGET): $(OBJDIR) $(OBJ)
+	$(CC) -o $@ $(OBJ) $(LIB)
 
 clean:
-	rm -rf obj_client shp_client
+	rm -rf $(OBJDIR) $(TARGET)
 
 # sensors
-sensors/sensor_button.o: sensors/sensor_button.hpp sensors/sensor.hpp Makefile
-sensors/sensor_led.o: sensors/sensor_led.hpp sensors/sensor.hpp Makefile
-sensors/sensor_dht11.o: sensors/sensor_dht11.hpp sensors/sensor.hpp Makefile
-sensors/sensor_relay.o: sensors/sensor_relay.hpp sensors/sensor.hpp Makefile
-sensors/sensor_pir.o: sensors/sensor_pir.hpp sensors/sensor.hpp Makefile
-sensors/sensor_flame.o: sensors/sensor_flame.hpp sensors/sensor.hpp Makefile
-sensors/sensor_servo.o: sensors/sensor_servo.hpp sensors/sensor.hpp Makefile
+$(OBJDIR)/sensors/sensor_button.o: sensors/sensor_button.hpp sensors/sensor.hpp makefile.client
+$(OBJDIR)/sensors/sensor_led.o: sensors/sensor_led.hpp sensors/sensor.hpp makefile.client
+$(OBJDIR)/sensors/sensor_dht11.o: sensors/sensor_dht11.hpp sensors/sensor.hpp makefile.client
+$(OBJDIR)/sensors/sensor_relay.o: sensors/sensor_relay.hpp sensors/sensor.hpp makefile.client
+$(OBJDIR)/sensors/sensor_pir.o: sensors/sensor_pir.hpp sensors/sensor.hpp makefile.client
+$(OBJDIR)/sensors/sensor_flame.o: sensors/sensor_flame.hpp sensors/sensor.hpp makefile.client
+$(OBJDIR)/sensors/sensor_servo.o: sensors/sensor_servo.hpp sensors/sensor.hpp makefile.client
 
 # main
-client_main.o: config.hpp socket.hpp debug.hpp sensor_manager.hpp queue_manager.hpp error_codes.hpp Makefile
-config.o: config.hpp debug.hpp error_codes.hpp Makefile
-debug.o: debug.hpp error_codes.hpp Makefile
-message.o: message.hpp debug.hpp error_codes.hpp Makefile
-queue_manager.o: queue_manager.hpp Makefile
-sensor_manager.o: sensor_manager.hpp sensors/sensor_button.hpp sensors/sensor_led.hpp sensors/sensor_dht11.hpp sensors/sensor_relay.hpp sensors/sensor_pir.hpp sensors/sensor.hpp debug.hpp error_codes.hpp Makefile
-socket.o: socket.hpp debug.hpp error_codes.hpp Makefile
+$(OBJDIR)/client_main.o: config.hpp socket.hpp debug.hpp sensor_manager.hpp queue_manager.hpp error_codes.hpp makefile.client
+$(OBJDIR)/config.o: config.hpp debug.hpp error_codes.hpp makefile.client
+$(OBJDIR)/debug.o: debug.hpp error_codes.hpp makefile.client
+$(OBJDIR)/message.o: message.hpp debug.hpp error_codes.hpp makefile.client
+$(OBJDIR)/queue_manager.o: queue_manager.hpp makefile.client
+$(OBJDIR)/sensor_manager.o: sensor_manager.hpp sensors/sensor_button.hpp sensors/sensor_led.hpp sensors/sensor_dht11.hpp sensors/sensor_relay.hpp sensors/sensor_pir.hpp sensors/sensor.hpp debug.hpp error_codes.hpp makefile.client
+$(OBJDIR)/socket.o: socket.hpp debug.hpp error_codes.hpp makefile.client
