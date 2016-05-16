@@ -2,34 +2,19 @@
 #ifndef SENSOR_DHT11_HPP
 #define SENSOR_DHT11_HPP
 
-#include "sensor.hpp"
-#include <pthread.h>
+#include "sensor_event.hpp"
 
 
-class sensor_dht11_class : public sensor_class
+class sensor_dht11_class : public sensor_event_class
 {
-
-    void prepare_bus (
-        void);
-
-    void get_data (
-        void);
 
 public:
     sensor_dht11_class (
-        unsigned char gpio_num,
-        const char* p_name);
-
-    virtual ~sensor_dht11_class (
-        void);
+            unsigned char gpio_num,
+            const char* p_name);
 
     virtual void activate (
-        void);
-    void show (
-        void);
+            void);
 };
 
-
-
 #endif // SENSOR_DHT11_HPP
- 

@@ -16,20 +16,20 @@ private:
     //std::vector <sensor_settings_t> sensors;
 
 private:
-    sensor_manager_class (
-            void);
-
     error_code_t setup_board (
             void);
 
 public:
-    static sensor_manager_class* instance (
+    sensor_manager_class (
+            void);
+
+    /*static sensor_manager_class* instance (
         void)
     {
         if (!p_instance)
             p_instance = new sensor_manager_class();
         return p_instance;
-    }
+    }*/
 
     error_code_t add_sensor (
             const char* p_name,

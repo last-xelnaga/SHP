@@ -3,9 +3,9 @@
 #include <stdio.h>
 
 #include "sensor_led.hpp"
-#include "wiringPi.h" 
+#include "wiringPi.h"
 
-sensor_led_class::sensor_led_class(unsigned char gpio_num, const char* p_name) : sensor_class(gpio_num, p_name)
+sensor_led_class::sensor_led_class(unsigned char gpio_num, const char* p_name) : sensor_class(gpio_num, p_name, "LED")
 {
     sensor_gpio_num = gpio_num;
     strcpy(p_sensor_name, p_name);

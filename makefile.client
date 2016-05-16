@@ -61,12 +61,12 @@ clean:
 	rm -rf $(OBJDIR) $(TARGET)
 
 # sensors
-$(OBJDIR)/sensors/sensor_button.o: sensors/sensor_button.hpp sensors/sensor.hpp makefile.client
+$(OBJDIR)/sensors/sensor_button.o: sensors/sensor_button.hpp sensors/sensor_event.hpp sensors/sensor.hpp makefile.client
 $(OBJDIR)/sensors/sensor_led.o: sensors/sensor_led.hpp sensors/sensor.hpp makefile.client
-$(OBJDIR)/sensors/sensor_dht11.o: sensors/sensor_dht11.hpp sensors/sensor.hpp makefile.client
+$(OBJDIR)/sensors/sensor_dht11.o: sensors/sensor_dht11.hpp sensors/sensor_event.hpp sensors/sensor.hpp makefile.client
 $(OBJDIR)/sensors/sensor_relay.o: sensors/sensor_relay.hpp sensors/sensor.hpp makefile.client
-$(OBJDIR)/sensors/sensor_pir.o: sensors/sensor_pir.hpp sensors/sensor.hpp makefile.client
-$(OBJDIR)/sensors/sensor_flame.o: sensors/sensor_flame.hpp sensors/sensor.hpp makefile.client
+$(OBJDIR)/sensors/sensor_pir.o: sensors/sensor_pir.hpp sensors/sensor_event.hpp sensors/sensor.hpp makefile.client
+$(OBJDIR)/sensors/sensor_flame.o: sensors/sensor_flame.hpp sensors/sensor_event.hpp sensors/sensor.hpp makefile.client
 $(OBJDIR)/sensors/sensor_servo.o: sensors/sensor_servo.hpp sensors/sensor.hpp makefile.client
 
 # main

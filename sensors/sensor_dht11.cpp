@@ -1,43 +1,14 @@
 
-#include <string.h>
+#include "sensor_dht11.hpp"
+#include "wiringPi.h"
 #include <stdio.h>
 
-#include "sensor_dht11.hpp"
-#include "wiringPi.h" 
-
-sensor_dht11_class::sensor_dht11_class (
-    unsigned char gpio_num,
-    const char* p_name) : sensor_class(gpio_num, p_name)
-{
-    sensor_gpio_num = gpio_num;
-    strcpy (p_sensor_name, p_name);
+#define DATA_LENGTH         5
 
 
-}
-
-sensor_dht11_class::~sensor_dht11_class (
-    void)
-{
-
-}
-
-void sensor_dht11_class::activate (
-    void)
-{
-    prepare_bus ();
-}
-
-void sensor_dht11_class::prepare_bus (
-    void)
-{
-    // pull the bus high. this one will show to sensor
-    // that it could stay in low-power-consumption mode
-    pinMode (sensor_gpio_num, OUTPUT);
-    digitalWrite (sensor_gpio_num, HIGH);
-}
-
-void sensor_dht11_class::get_data (
-    void)
+void read_temperature (
+        unsigned char sensor_gpio_num,
+        unsigned char* p_data)
 {
     // send 'start' command
     // pull the bus down
@@ -63,9 +34,9 @@ void sensor_dht11_class::get_data (
     delayMicroseconds (80);
 
     // and it's ready to send 40 bits of data
-    unsigned char data[5];
-    for (unsigned int i = 0; i < sizeof(data); i ++) // receive temperature and humidity data, the parity bit is not considered
+    for (unsigned int i = 0; i < DATA_LENGTH; i ++)
     {
+        // receive temperature and humidity data, the parity bit is not considered
         unsigned char byte = 0;
         for (int bit = 0; bit < 8; bit ++)
         {
@@ -87,16 +58,68 @@ void sensor_dht11_class::get_data (
                 byte |= (1 << (7 - bit));
             }
         }
-        data[i] = byte;
+        p_data [i] = byte;
     }
 
-    prepare_bus ();
+    pinMode (sensor_gpio_num, OUTPUT);
 
-    printf("temp %s\t%i.%i, hum %i.%i, crc %i\n", p_sensor_name, data[0], data[1], data[2], data[3], data[4]);
+    // pull the bus high. this one will show to sensor
+    // that it could stay in low-power-consumption mode
+    digitalWrite (sensor_gpio_num, HIGH);
+
+    //printf("temp %s\t%i.%i, hum %i.%i, crc %i\n", p_sensor_name, data[0], data[1], data[2], data[3], data[4]);
 }
 
-void sensor_dht11_class::show (
+int is_data_crc_valid (
+        unsigned char* p_data)
+{
+    int result = -1;
+
+    if (true)
+    {
+        result = 1;
+    }
+
+    return result;
+}
+
+void* dht11_working_thread (
+        void* p_arg)
+{
+    sensor_dht11_class* p_sensor_event = (sensor_dht11_class*) p_arg;
+    unsigned char sensor_gpio_num = p_sensor_event->get_gpio_num ();
+
+    unsigned int retry_count = 3;
+
+    unsigned char p_data [DATA_LENGTH];
+    do
+    {
+        read_temperature (sensor_gpio_num, p_data);
+        retry_count --;
+    } while (is_data_crc_valid (p_data) != 1 && retry_count >= 0);
+
+    p_sensor_event->event_off ();
+
+    return NULL;
+}
+
+sensor_dht11_class::sensor_dht11_class (
+        unsigned char gpio_num,
+        const char* p_name) :
+        sensor_event_class (gpio_num, p_name, "DHT11")
+{
+
+}
+
+void sensor_dht11_class::activate (
         void)
 {
-    get_data();
+    pinMode (sensor_gpio_num, OUTPUT);
+
+    // pull the bus high. this one will show to sensor
+    // that it could stay in low-power-consumption mode
+    digitalWrite (sensor_gpio_num, HIGH);
+
+    // create worker thread
+    pthread_create (&pth, NULL, dht11_working_thread, this);
 }

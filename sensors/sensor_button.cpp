@@ -1,58 +1,42 @@
 
-#include <string.h>
-#include <stdio.h>
-
 #include "sensor_button.hpp"
 #include "wiringPi.h"
+#include <stdio.h>
 
-void* button_working_thread(
-    void* p_arg)
+
+void* button_working_thread (
+        void* p_arg)
 {
-    sensor_button_class* p_button = (sensor_button_class*)p_arg;
-    unsigned char sensor_gpio_num = p_button->get_gpio_num();
-    void* p_user_data = NULL;
-    trigger_cb p_button_up_cb = p_button->get_callback(&p_user_data);
+    sensor_event_class* p_sensor_event = (sensor_event_class*) p_arg;
+    unsigned char sensor_gpio_num = p_sensor_event->get_gpio_num ();
 
-    printf("Waiting for button ...\n");
-    while(digitalRead(sensor_gpio_num) == HIGH)
-        delay(100);
+    printf ("waiting for event ...\n");
+    while (digitalRead (sensor_gpio_num) == HIGH)
+        delay (100);
     printf ("button pressed\n") ;
-    while(digitalRead(sensor_gpio_num) == LOW)
-        delay(100);
-    printf ("button released\n") ;
+    p_sensor_event->event_on ();
 
-    p_button_up_cb(p_user_data);
-    p_button->activate();
+    while (digitalRead (sensor_gpio_num) == LOW)
+        delay (100);
+    printf ("button released\n") ;
+    p_sensor_event->event_off ();
 
     return NULL;
 }
 
 sensor_button_class::sensor_button_class (
-    unsigned char gpio_num,
-    const char* p_name) : sensor_trigger_class(gpio_num, p_name)
+        unsigned char sensor_gpio_num_,
+        const char * p_sensor_name_) :
+        sensor_event_class (sensor_gpio_num_, p_sensor_name_, "BUTTON")
 {
-    //sensor_gpio_num = gpio_num;
-    //strcpy(p_sensor_name, p_name);
+
 }
 
-sensor_button_class::~sensor_button_class(
-    void)
-{
-    pthread_cancel(pth);
-
-    printf("wait for join\n");
-    // wait for our thread to finish before continuing
-    pthread_join(pth, NULL);
-
-    printf("button destroyed\n");
-}
-
-void sensor_button_class::activate(
+void sensor_button_class::activate (
         void)
 {
-    pinMode(sensor_gpio_num, INPUT);
+    pinMode (sensor_gpio_num, INPUT);
 
-    // Create worker thread
-    pthread_create(&pth, NULL, button_working_thread, this);
-    printf("%s button working thread create\n", p_sensor_name);
+    // create worker thread
+    pthread_create (&pth, NULL, button_working_thread, this);
 }

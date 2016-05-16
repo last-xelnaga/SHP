@@ -7,7 +7,7 @@
 
 sensor_relay_class::sensor_relay_class (
     unsigned char gpio_num,
-    const char* p_name) : sensor_class(gpio_num, p_name)
+    const char* p_name) : sensor_class(gpio_num, p_name, "RELAY")
 {
     sensor_gpio_num = gpio_num;
     strcpy(p_sensor_name, p_name);
