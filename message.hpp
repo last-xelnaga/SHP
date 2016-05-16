@@ -133,9 +133,6 @@ protected:
     virtual void unpack_payload (
             void) = 0;
 
-    virtual ~message_class (
-            void);
-
 public:
     message_class (
             message_id_t type);
@@ -159,6 +156,9 @@ public:
         *p_data = p_raw_payload;
         *data_length = header.payload_size;
     }
+
+    virtual ~message_class (
+            void);
 };
 
 #endif // MESSAGE_HPP

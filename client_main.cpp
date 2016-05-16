@@ -65,25 +65,46 @@ int relay_callback (
     return 0;
 }*/
 
+config_class* config (
+        void)
+{
+   return config_class::instance ();
+}
+
 
 int main (
     int argc,
     char **argv)
 {
-    config_class::instance()->read_config ("shp_client.cfg");
+    error_code_t result = RESULT_OK;
+    DEBUG_LOG_TRACE_BEGIN
 
-    std::vector <sensor_settings_t>::const_iterator sensor;
-    for (sensor = config_class::instance ()->sensors.begin(); sensor != config_class::instance ()->sensors.end(); ++ sensor)
+
+    if (result == RESULT_OK)
     {
-        sensor_manager_class::instance()->add_sensor (sensor->p_name, sensor->gpio, sensor->p_type);
+        result = config ()->read_config ("shp_client.cfg");
     }
 
-    client_socket_class client_socket (config_class::instance ()->network.p_address,
-            config_class::instance ()->network.port);
-    client_socket.create_fd ();
+    sensor_manager_class* p_sensor_manager = new sensor_manager_class ();
 
-    queue_manager_class::instance ()->set_socket (&client_socket);
-    queue_manager_class::instance ()->run ();
+    if (result == RESULT_OK)
+    {
+        std::vector <sensor_settings_t>::const_iterator sensor;
+        for (sensor = config ()->sensors.begin(); sensor != config ()->sensors.end() && result == RESULT_OK; ++ sensor)
+        {
+            result = p_sensor_manager->add_sensor (sensor->p_name, sensor->gpio, sensor->p_type);
+        }
+    }
+
+    if (result == RESULT_OK)
+    {
+        client_socket_class client_socket (config ()->network.p_address,
+                config ()->network.port);
+
+        queue_manager_class::instance ()->run (&client_socket);
+    }
+
+    delete p_sensor_manager;
 
     /*sensor_led_class* p_status_led = new sensor_led_class(0, "status");
     p_status_led->activate();
@@ -119,26 +140,6 @@ int main (
     p_relay_button2->set_trigger_cb(relay_callback, p_relay2);
     p_relay_button2->activate();*/
 
-
-
-    //int i = 10;
-/*while (1 *//*i --*//*)
-    {
-        p_dth11->show();
-        //p_dth112->show();
-        sleep(4);
-    }
-
-    delete p_relay_button;
-    delete p_relay_button2;
-    delete p_reset_button;
-    delete p_status_led;
-    delete p_pir;
-    delete p_status_led_pir;
-    delete p_dth11;
-    //delete p_dth112;
-    delete p_relay;
-    delete p_relay2;*/
-
-    return 0;
+    DEBUG_LOG_TRACE_END (result)
+    return result;
 }

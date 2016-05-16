@@ -1,11 +1,11 @@
-#include "debug.hpp"
+
 #include <netdb.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
 #include <fcntl.h>
 #include "socket.hpp"
-//#include "secd_memory_debug.hpp"
+#include "debug.hpp"
 
 
 socket_class::socket_class (
@@ -18,7 +18,7 @@ socket_class::socket_class (
     connect_retry_sleep = 2;
     try_count_max = 3;
     write_timeout = 10;
-    read_timeout = 10;
+    read_timeout = 60;
 }
 
 error_code_t socket_class::send_data (
@@ -90,7 +90,7 @@ error_code_t socket_class::recv_data (
     struct timeval tv;
     fd_set readset, tempset;
     unsigned int total_received = 0;
-    unsigned char* p_recv_buffer = (unsigned char*)p_buffer;
+    unsigned char* p_recv_buffer = (unsigned char*) p_buffer;
     DEBUG_LOG_TRACE_BEGIN
 
     // Initialize the set
@@ -108,7 +108,7 @@ error_code_t socket_class::recv_data (
         int res = select (fd + 1, &tempset, NULL, NULL, &tv);
         if (res > 0)
         {
-            int received = recv (fd, (void*)p_recv_buffer, to_receive - total_received, 0);
+            int received = recv (fd, (void*) p_recv_buffer, to_receive - total_received, 0);
             if (received < 0)
             {
                 // error
