@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <time.h>
 #include "debug.hpp"
 
 #define MAX_ERROR_MSG_SIZE          32
@@ -85,6 +86,16 @@ const char* get_error_msg (
     return result_msg;
 }
 
+char* get_current_time (
+        void)
+{
+    static char result[12];
+    time_t rawtime = time (NULL);
+    struct tm * timeinfo = localtime (&rawtime);
+    sprintf (result, "%.2d:%.2d:%.2d", timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+    return result;
+}
+
 void debug_log_print (
         const char* p_tag,
         const char* p_filename,
@@ -107,7 +118,7 @@ void debug_log_print (
     va_list args;
     va_start (args, text);
     vsnprintf (buffer, MAX_LOG_MSG_SIZE, text, args);
-    printf ("[%s] %25s:%-4d  %s%s\n", p_tag, p_filename, line,
+    printf ("[%s] %s %25s:%-4d  %s%s\n", p_tag, get_current_time (), p_filename, line,
             &p_debug_level_buffer [sizeof (p_debug_level_buffer) - debug_level * INTEND_SIZE],
             buffer);
     va_end (args);
@@ -132,7 +143,7 @@ void debug_log_print_array (
     unsigned int p_log_ascii_len = 0;
 
     // write the header
-    printf ("[%s] array: %s, length: %d", p_tag, p_header, length);
+    printf ("[%s] array: %s, length: %d\n", p_tag, p_header, length);
 
     // process all bytes
     for (unsigned int i = 0; i < length; ++ i)
@@ -148,7 +159,7 @@ void debug_log_print_array (
             p_log_ascii_len = 0;
 
             // write the line
-            printf ("[%s] %s || %s", p_tag, p_log_hex, p_log_ascii);
+            printf ("[%s] %s || %s\n", p_tag, p_log_hex, p_log_ascii);
         }
 
         // process byte and make a hex from it
@@ -171,7 +182,7 @@ void debug_log_print_array (
         p_log_hex [p_log_hex_len] = 0;
         p_log_ascii [p_log_ascii_len] = 0;
 
-        printf ("[%s] %s || %s", p_tag, p_log_hex, p_log_ascii);
+        printf ("[%s] %s || %s\n", p_tag, p_log_hex, p_log_ascii);
     }
 }
 
