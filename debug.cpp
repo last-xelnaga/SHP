@@ -119,7 +119,7 @@ void debug_log_print (
     va_start (args, text);
     vsnprintf (buffer, MAX_LOG_MSG_SIZE, text, args);
     printf ("[%s] %s %25s:%-4d  %s%s\n", p_tag, get_current_time (), p_filename, line,
-            &p_debug_level_buffer [sizeof (p_debug_level_buffer) - debug_level * INTEND_SIZE],
+            &p_debug_level_buffer [sizeof (p_debug_level_buffer) - 1 - debug_level * INTEND_SIZE],
             buffer);
     va_end (args);
 }

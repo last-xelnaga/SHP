@@ -12,7 +12,7 @@ int main (
 
     unsigned char p_buffer [128];
     unsigned char* p_header_ptr = p_buffer;
-    unsigned char* p_message_ptr = &p_buffer [sizeof (message_header_t)];
+    unsigned char* p_message_ptr = &p_buffer [sizeof (message_class::message_header_t)];
 
     server_socket_class server_socket;
     result = server_socket.create_fd ();
@@ -25,7 +25,7 @@ int main (
 
         if (result == RESULT_OK)
         {
-            result = server_socket.recv_data (p_header_ptr, sizeof (message_header_t));
+            result = server_socket.recv_data (p_header_ptr, sizeof (message_class::message_header_t));
             if (result == RESULT_TRANSPORT_ERROR)
             {
                 DEBUG_LOG_MESSAGE ("socket transport error. reset the existing connection");
@@ -37,7 +37,7 @@ int main (
 
         if (result == RESULT_OK)
         {
-            message_header_t* p_header = (message_header_t*) p_header_ptr;
+            message_class::message_header_t* p_header = (message_class::message_header_t*) p_header_ptr;
 
             result = server_socket.recv_data (p_message_ptr, p_header->payload_size);
             if (result == RESULT_TRANSPORT_ERROR)
@@ -51,8 +51,8 @@ int main (
 
         if (result == RESULT_OK)
         {
-            message_header_t* p_header = (message_header_t*) p_header_ptr;
-            unsigned int message_length = sizeof (message_header_t) + p_header->payload_size;
+            message_class::message_header_t* p_header = (message_class::message_header_t*) p_header_ptr;
+            unsigned int message_length = sizeof (message_class::message_header_t) + p_header->payload_size;
             DEBUG_LOG_PRINT_ARRAY ("message", p_buffer, message_length);
         }
     }

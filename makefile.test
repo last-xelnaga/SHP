@@ -1,0 +1,50 @@
+PREFIX	=
+
+OBJDIR = obj_test
+TARGET = shp_test
+CC	= $(PREFIX)g++
+
+INC	= -I. -Iexternal/gtest/include
+
+CFLAGS	= -Wall
+#CFLAGS += -DDEBUG -DDEBUG_TAG="---TEST---"
+CFLAGS += -O2 -fno-omit-frame-pointer
+#CFLAGS += -O0 -ggdb
+#CFLAGS	+= -DTRACE -DDATA
+
+LIB	= -Lexternal/gtest -lgtest -lpthread
+
+SRC	= \
+	debug.cpp \
+	message.cpp \
+	test/message_test.cpp \
+	#socket.cpp \
+	test/socket_test.cpp
+
+
+OBJ = $(SRC:%.cpp=$(OBJDIR)/%.o)
+
+$(OBJDIR)/%.o: %.cpp
+	$(CC) $(CFLAGS) $(INC) -c -o $@ $<
+
+.PHONY: all clean
+
+all: $(TARGET)
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)/test
+
+$(TARGET): $(OBJDIR) $(OBJ)
+	$(CC) -o $@ $(OBJ) $(LIB)
+
+clean:
+	rm -rf $(OBJDIR) $(TARGET)
+
+# base
+$(OBJDIR)/debug.o: debug.hpp error_codes.hpp makefile.test
+$(OBJDIR)/message.o: message.hpp debug.hpp error_codes.hpp makefile.test
+$(OBJDIR)/socket.o: socket.hpp debug.hpp error_codes.hpp makefile.test
+
+# test
+$(OBJDIR)/test/socket_test.o: test/socket_test.cpp socket.hpp debug.hpp makefile.test
+$(OBJDIR)/test/message_test.o: test/message_test.cpp message.hpp debug.hpp makefile.test

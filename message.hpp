@@ -4,142 +4,103 @@
 
 #include "error_codes.hpp"
 
-
-
-// size of the default message
-//#define INITIAL_MESSAGE_SIZE        364
-
-// default values for the mew message
-//#define MESSAGE_INIT                {{CURRENT_MESSAGE_VERSION, 0, 0, 0}, NULL, 0}
-
-// Max lengths of the fields
-//#define FIELD_BUFFER_10240_MAX      10240
-
-// List of the message types. This list should be in sync with clients
-/*typedef enum
-{
-    // Device Security
-    MESSAGE_DEVSEC_GET_VERSION = 0,                 // 0
-
-} message_id_t;*/
-
-// List of the fields. This list should be in sync with clients
-/*typedef enum
-{
-    FIELD_BUFFER_10240,         // unsigned char 10240
-} field_id_t;*/
-
-/*
- * Function initializes an empty message. Should be called before any operation
- * with message, e.g. add/get and destroy. Functiona will allocate memory, so
- * it is caller's responcibility to call destroy_message() to deallocate it.
- *
- * @param p_message            [in/out]  message
- * @param message_id           [in]  message number
- *
- * @retval TCredMgr_Result error code
- */
-/*error_code_t init_message (
-        message_buffer_t* const p_message,
-        const message_id_t message_id);*/
-
-/*
- * Function adds a field to the message. Message will be stored in TLV format.
- * In case of huge size of the payload the message buffer will be reallocated.
- *
- * @param p_message            [in/out]  message
- * @param field_id             [in]  field number
- * @param payload_size         [in]  data size that will be added
- * @param p_payload            [in]  data
- *
- * @retval error_code_t        error code
- */
-/*error_code_t add_field_to_message (
-        message_buffer_t* const p_message,
-        const int field_id,
-        const unsigned int payload_size,
-        const unsigned char* p_payload);*/
-
-/*
- * Function gets a field from the message.
- *
- * @param p_message            [in]  message
- * @param field_id             [in]  field number
- * @param payload_size         [out] data size
- * @param p_payload            [out] pointer to the raw data
- *
- * @retval error_code_t        error code
- */
-/*error_code_t get_field_from_message (
-        const message_buffer_t* p_message,
-        const int field_id,
-        unsigned int* payload_size,
-        unsigned char** p_payload);*/
-
-/*
- * Function deallocates previouslly allocated memory by init_message function.
- *
- * @param p_message            [in/out]  message
- */
-
-/*void destroy_message (
-        message_buffer_t* const p_message);*/
-
-typedef struct
-{
-    unsigned char message_version;
-    unsigned int message_id;
-    unsigned int payload_size;
-    unsigned int message_result;
-}__attribute__((__packed__)) message_header_t;
+// message protocol version
+#define CURRENT_MESSAGE_VERSION             1
 
 class message_class
 {
 public:
-    // list of the message types
+
     typedef enum
     {
         // system messages
-        send_handshake = 0,
+        send_configuration = 0,
+        send_configuration_result,
         get_version,
-        get_configuration,
+        get_version_result,
 
-        send_temp = 100,
-        send_humid,
-        send_reed,
-
-        trigger_relay = 200,
-        trigger_servo,
-        trigger_button,
+        // sensor messages
+        send_event = 100,
+        send_event_result,
+        send_data,
+        send_data_result,
 
     } message_id_t;
 
+    // list of the field types
+    typedef enum
+    {
+        consfig,
+        version,
+
+        message_time,
+
+        sensor_type,
+        sensor_name,
+        sensor_data,
+
+    } field_id_t;
+
+    // header structure. every message starts with this object.
+    // it describes the message: version, operation and payload strimg,
+    // that will have all needed data in TLV format.
+    // all data use little endian.
+    typedef struct
+    {
+        unsigned char message_version;
+        message_id_t message_id;
+        unsigned int payload_size;
+        error_code_t message_result;
+    }__attribute__((__packed__)) message_header_t;
+
 private:
     message_header_t header;
-
-protected:
     unsigned char* p_raw_payload;
-
-protected:
-    void update_header (
-            unsigned int payload_length)
-    {
-        header.payload_size = payload_length;
-    }
-
-    virtual void pack_payload (
-            void) = 0;
-
-    virtual void unpack_payload (
-            void) = 0;
+    unsigned int message_alloc_size;
 
 public:
     message_class (
             message_id_t type);
 
-    void set_raw_message (
-            unsigned char* p_raw_message,
-            unsigned int raw_message_length);
+    /*
+     * Function adds a field to the message. Message will be stored in TLV format.
+     * In case of huge size of the payload the message buffer will be reallocated.
+     *
+     * @param field_id             [in]  field number
+     * @param p_payload            [in]  data
+     * @param payload_size         [in]  data size that will be added
+     *
+     * @retval error_code_t        error code
+     */
+    error_code_t add_field_to_message (
+            const field_id_t field_id,
+            const unsigned char* p_payload,
+            const unsigned int payload_size);
+
+    error_code_t add_time_to_message (
+            void);
+
+    error_code_t add_string_to_message (
+            const field_id_t field_id,
+            const char* p_payload);
+
+    /*
+     * Function gets a field from the message.
+     *
+     * @param field_id             [in]  field number
+     * @param payload_size         [out] data size
+     * @param p_payload            [out] pointer to the raw data
+     *
+     * @retval error_code_t        error code
+     */
+    error_code_t get_field_from_message (
+            const field_id_t field_id,
+            unsigned int* payload_size,
+            unsigned char** p_payload);
+
+    error_code_t set_payload (
+            unsigned char* p_data,
+            unsigned int data_length);
 
     void get_header (
             unsigned char** p_data,
@@ -157,6 +118,10 @@ public:
         *data_length = header.payload_size;
     }
 
+    /*
+     * Function deallocates previouslly allocated memory.
+     *
+     */
     virtual ~message_class (
             void);
 };

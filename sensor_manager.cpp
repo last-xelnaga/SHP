@@ -1,13 +1,8 @@
 
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
-
 #include "wiringPi.h"
 #include "sensor_manager.hpp"
 #include "debug.hpp"
 #include "queue_manager.hpp"
-
 #include "message.hpp"
 
 // triggers
@@ -21,66 +16,13 @@
 #include "sensors/sensor_relay.hpp"
 #include "sensors/sensor_servo.hpp"
 
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
 
-class test_message_class : public message_class
-{
-public:
-    char p_text [128];
-    unsigned int data;
+#define EVENT_ON        "1"
+#define EVENT_OFF       "0"
 
-public:
-    test_message_class (
-        void) : message_class (message_class::send_temp)
-    {
-        memset (p_text, 0, sizeof (p_text));
-        data = 0;
-    }
-
-    void set_new_data (
-        const char* p_new_text,
-        unsigned int new_data)
-    {
-        strcpy (p_text, p_new_text);
-        data = new_data;
-    }
-
-    void pack_payload (
-            void)
-    {
-        p_raw_payload = new unsigned char[128];
-        unsigned char* p_pointer = p_raw_payload;
-
-        // add size of the text
-        int text_length = strlen (p_text) + 1;
-        memcpy (p_pointer, &text_length, sizeof (int));
-        p_pointer += sizeof (int);
-        memcpy (p_pointer, p_text, text_length);
-        p_pointer += text_length;
-
-        // add data
-        memcpy (p_pointer, &data, sizeof (int));
-        p_pointer += sizeof (int);
-
-        update_header (p_pointer - p_raw_payload);
-    }
-
-    void unpack_payload (
-            void)
-    {
-        unsigned char* p_pointer = p_raw_payload;
-
-        // get text
-        int text_length = 0;
-        memcpy (&text_length, p_pointer, sizeof (int));
-        p_pointer += sizeof (int);
-        memcpy (p_text, p_pointer, text_length);
-        p_pointer += text_length;
-
-        // get data
-        memcpy (&data, p_pointer, sizeof (int));
-        p_pointer += sizeof (int);
-    }
-};
 
 void event_on (
         const sensor_manager_class* p_sensor_manager,
@@ -90,9 +32,11 @@ void event_on (
 
     sensor_class* p_sensor_temp = (sensor_class*) p_sensor;
 
-    test_message_class* p_message = new test_message_class ();
-    p_message->set_new_data (p_sensor_temp->get_name (), 1);
-    p_message->pack_payload ();
+    message_class* p_message = new message_class (message_class::send_event);
+    p_message->add_time_to_message ();
+    p_message->add_string_to_message (message_class::sensor_type, p_sensor_temp->get_type ());
+    p_message->add_string_to_message (message_class::sensor_name, p_sensor_temp->get_name ());
+    p_message->add_string_to_message (message_class::sensor_data, EVENT_ON);
 
     queue_manager_class::instance ()->add_message (p_message);
 }
@@ -105,9 +49,11 @@ void event_off (
 
     sensor_class* p_sensor_temp = (sensor_class*) p_sensor;
 
-    test_message_class* p_message = new test_message_class ();
-    p_message->set_new_data (p_sensor_temp->get_name (), 0);
-    p_message->pack_payload ();
+    message_class* p_message = new message_class (message_class::send_event);
+    p_message->add_time_to_message ();
+    p_message->add_string_to_message (message_class::sensor_type, p_sensor_temp->get_type ());
+    p_message->add_string_to_message (message_class::sensor_name, p_sensor_temp->get_name ());
+    p_message->add_string_to_message (message_class::sensor_data, EVENT_OFF);
 
     queue_manager_class::instance ()->add_message (p_message);
 
@@ -133,7 +79,7 @@ error_code_t sensor_manager_class::setup_board (
     {
         if (is_initialized == true)
         {
-            // early return ((
+            // early return :(
             DEBUG_LOG_TRACE_END (result)
             return result;
         }
@@ -195,8 +141,9 @@ error_code_t sensor_manager_class::add_sensor (
         }
         else if (strcmp (p_type, "FLAME") == 0)
         {
-            //p_flame->set_event_callback (event_on, event_off, this);
-            //p_flame->activate ();
+            sensor_flame_class* p_flame = new sensor_flame_class (gpio, p_name);
+            p_flame->set_event_callback (event_on, event_off, this);
+            p_flame->activate ();
         }
         else if (strcmp (p_type, "PIR") == 0)
         {
@@ -206,8 +153,8 @@ error_code_t sensor_manager_class::add_sensor (
         }
         else if (strcmp (p_type, "LED") == 0)
         {
-            sensor_led_class* p_status_led_pir = new sensor_led_class (gpio, p_name);
-            p_status_led_pir->activate ();
+            sensor_led_class* p_led = new sensor_led_class (gpio, p_name);
+            p_led->activate ();
         }
         else
         {
