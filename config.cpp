@@ -5,16 +5,20 @@
 #include "config.hpp"
 #include "debug.hpp"
 
+#define NAME_LENGTH         32
+#define IP4_ADDRESS_LENGTH  15
+#define TYPE_LENGTH         16
+
 config_class* config_class::p_instance = 0;
 
 config_class::config_class (
         void)
 {
     // general
-    strncpy (general.p_name, "test client 1", NAME_LENGTH);
+    general.name = "test client 1";
 
     // network settings
-    strncpy (network.p_address, "127.0.0.1", IP4_ADDRESS_LENGTH);
+    network.address = "127.0.0.1";
     network.port = 3456;
     network.keep_alive_timeout = 0;
     network.connect_retry_count = 3;
@@ -26,7 +30,7 @@ config_class::config_class (
 error_code_t config_class::read_string (
         config_t* p_cfg,
         const char* p_param_name,
-        char* p_holder,
+        /*char* p_holder*/std::string* p_holder,
         unsigned int holder_length)
 {
     error_code_t result = RESULT_OK;
@@ -41,7 +45,8 @@ error_code_t config_class::read_string (
     }
     else
     {
-        strncpy (p_holder, str, holder_length);
+        //strncpy (p_holder, str, holder_length);
+        *p_holder = str;
     }
 
     DEBUG_LOG_TRACE_END (result)
@@ -78,7 +83,7 @@ error_code_t config_class::read_general (
     error_code_t result = RESULT_OK;
     DEBUG_LOG_TRACE_BEGIN
 
-    read_string (p_cfg, "general.name", general.p_name, NAME_LENGTH);
+    read_string (p_cfg, "general.name", &general.name, NAME_LENGTH);
 
     DEBUG_LOG_TRACE_END (result)
     return result;
@@ -90,7 +95,7 @@ error_code_t config_class::read_network (
     error_code_t result = RESULT_OK;
     DEBUG_LOG_TRACE_BEGIN
 
-    read_string (p_cfg, "network.address", network.p_address, IP4_ADDRESS_LENGTH);
+    read_string (p_cfg, "network.address", &network.address, IP4_ADDRESS_LENGTH);
     read_number (p_cfg, "network.port", &network.port);
     read_number (p_cfg, "network.keep_alive_timeout", &network.keep_alive_timeout);
     read_number (p_cfg, "network.connect_retry_count", &network.connect_retry_count);
@@ -135,19 +140,26 @@ error_code_t config_class::read_sensors (
                 && config_setting_lookup_int (item, "gpio", &gpio)
                 && config_setting_lookup_string (item, "type", &type)))
                 continue;
+
+            sensor_settings_t sensor;
+
+            sensor.name = name;
+            sensor.gpio = gpio;
+            sensor.type = type;
+            sensors.push_back (sensor);
         }
 
-        sensor_settings_t sensor;
+        /*sensor_settings_t sensor;
 
-        strncpy (sensor.p_name, "motion sensor", NAME_LENGTH);
+        sensor.name = "motion sensor";
         sensor.gpio = 3;
-        strncpy (sensor.p_type, "PIR", TYPE_LENGTH);
+        sensor.type = "PIR";
         sensors.push_back (sensor);
 
-        strncpy (sensor.p_name, "alarm", NAME_LENGTH);
+        sensor.name = "alarm";
         sensor.gpio = 22;
-        strncpy (sensor.p_type, "LED", TYPE_LENGTH);
-        sensors.push_back (sensor);
+        sensor.type = "LED";
+        sensors.push_back (sensor);*/
     }
 
     DEBUG_LOG_TRACE_END (result)

@@ -3,12 +3,9 @@
 #include "wiringPi.h"
 #include <stdio.h>
 
-#define DATA_LENGTH         5
 
-
-void read_temperature (
-        unsigned char sensor_gpio_num,
-        unsigned char* p_data)
+void sensor_dht11_class::read_data (
+        void)
 {
     // send 'start' command
     // pull the bus down
@@ -70,37 +67,18 @@ void read_temperature (
     //printf("temp %s\t%i.%i, hum %i.%i, crc %i\n", p_sensor_name, data[0], data[1], data[2], data[3], data[4]);
 }
 
-int is_data_crc_valid (
-        unsigned char* p_data)
+bool sensor_dht11_class::is_data_crc_valid (
+        void)
 {
-    int result = -1;
+    bool result = false;
 
+    // check the crc of the data buffer
     if (true)
     {
-        result = 1;
+        result = true;
     }
 
     return result;
-}
-
-void* dht11_working_thread (
-        void* p_arg)
-{
-    sensor_dht11_class* p_sensor_event = (sensor_dht11_class*) p_arg;
-    unsigned char sensor_gpio_num = p_sensor_event->get_gpio_num ();
-
-    unsigned int retry_count = 3;
-
-    unsigned char p_data [DATA_LENGTH];
-    do
-    {
-        read_temperature (sensor_gpio_num, p_data);
-        retry_count --;
-    } while (is_data_crc_valid (p_data) != 1 && retry_count >= 0);
-
-    p_sensor_event->event_off ();
-
-    return NULL;
 }
 
 sensor_dht11_class::sensor_dht11_class (
@@ -111,7 +89,7 @@ sensor_dht11_class::sensor_dht11_class (
 
 }
 
-void sensor_dht11_class::activate (
+void sensor_dht11_class::sensor_setup (
         void)
 {
     pinMode (sensor_gpio_num, OUTPUT);
@@ -119,7 +97,19 @@ void sensor_dht11_class::activate (
     // pull the bus high. this one will show to sensor
     // that it could stay in low-power-consumption mode
     digitalWrite (sensor_gpio_num, HIGH);
+}
 
-    // create worker thread
-    pthread_create (&pth, NULL, dht11_working_thread, this);
+void sensor_dht11_class::do_task (
+        void)
+{
+    activated = false;
+
+    unsigned int retry_count = 3;
+    do
+    {
+        read_data ();
+        retry_count --;
+    } while (is_data_crc_valid () != 1 && retry_count >= 0);
+
+    event_off ();
 }

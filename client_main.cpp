@@ -65,12 +65,11 @@ int relay_callback (
     return 0;
 }*/
 
-config_class* config (
+static config_class* config (
         void)
 {
    return config_class::instance ();
 }
-
 
 int main (
     int argc,
@@ -89,16 +88,17 @@ int main (
 
     if (result == RESULT_OK)
     {
-        std::vector <sensor_settings_t>::const_iterator sensor;
+        /*std::vector <sensor_settings_t>::const_iterator sensor;
         for (sensor = config ()->sensors.begin(); sensor != config ()->sensors.end() && result == RESULT_OK; ++ sensor)
         {
             result = p_sensor_manager->add_sensor (sensor->p_name, sensor->gpio, sensor->p_type);
-        }
+        }*/
+        p_sensor_manager->add_sensors ();
     }
 
     if (result == RESULT_OK)
     {
-        client_socket_class client_socket (config ()->network.p_address,
+        client_socket_class client_socket (config ()->network.address.c_str (),
                 config ()->network.port);
 
         queue_manager_class::instance ()->run (&client_socket);

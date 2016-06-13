@@ -51,6 +51,11 @@ int main (
 
         if (result == RESULT_OK)
         {
+            server_socket.close_client ();
+        }
+
+        if (result == RESULT_OK)
+        {
             message_class::message_header_t* p_header = (message_class::message_header_t*) p_header_ptr;
             unsigned int message_length = sizeof (message_class::message_header_t) + p_header->payload_size;
             DEBUG_LOG_PRINT_ARRAY ("message", p_buffer, message_length);

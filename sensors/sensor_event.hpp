@@ -4,7 +4,7 @@
 
 #include "sensor.hpp"
 #include <string.h>
-#include <pthread.h>
+#include <sys/types.h>
 
 class sensor_manager_class;
 class sensor_event_class;
@@ -29,46 +29,67 @@ protected:
     sensor_event_class (
             unsigned char sensor_gpio_num_,
             const char * p_sensor_name_,
-            const char * p_sensor_type_) :
-            sensor_class (sensor_gpio_num_, p_sensor_name_, p_sensor_type_)
-    {
-        pth = 0;
-    }
+            const char * p_sensor_type_);
 
 public:
-    virtual void set_event_callback (
+    void set_event_callback (
             f_event_callback p_event_on_callback_,
             f_event_callback p_event_off_callback_,
-            const sensor_manager_class* p_sensor_manager_)
-    {
-        p_event_on_callback = p_event_on_callback_;
-        p_event_off_callback = p_event_off_callback_;
-        p_sensor_manager = (sensor_manager_class*) p_sensor_manager_;
-    }
+            const sensor_manager_class* p_sensor_manager_);
+
+    void activate (
+            void);
 
     void event_on (
-            void)
-    {
-        if (p_event_on_callback)
-            p_event_on_callback (p_sensor_manager, this);
-    }
+            void);
 
     void event_off (
-            void)
-    {
-        if (p_event_off_callback)
-            p_event_off_callback (p_sensor_manager, this);
-    }
+            void);
+
+    virtual void do_task (
+            void);
+
+protected:
+    virtual void sensor_setup (
+            void);
 
     virtual ~sensor_event_class (
-            void)
-    {
-        pthread_cancel (pth);
-        //printf ("wait for join\n");
-        // wait for our thread to finish before continuing
-        pthread_join (pth, NULL);
-        //printf ("button destroyed\n");
-    }
+            void);
+};
+
+class sensor_button_class : public sensor_event_class
+{
+public:
+    sensor_button_class (
+            unsigned char sensor_gpio_num_,
+            const char * p_sensor_name_);
+};
+
+class sensor_flame_class : public sensor_event_class
+{
+public:
+    sensor_flame_class (
+            unsigned char sensor_gpio_num_,
+            const char * p_sensor_name_);
+};
+
+class sensor_pir_class : public sensor_event_class
+{
+public:
+    sensor_pir_class (
+            unsigned char sensor_gpio_num_,
+            const char * p_sensor_name_);
+
+    virtual void do_task (
+            void);
+};
+
+class sensor_reed_class : public sensor_event_class
+{
+public:
+    sensor_reed_class (
+            unsigned char sensor_gpio_num_,
+            const char * p_sensor_name_);
 };
 
 #endif // SENSOR_EVENT_HPP

@@ -30,7 +30,7 @@ public:
     // list of the field types
     typedef enum
     {
-        consfig,
+        config,
         version,
 
         message_time,

@@ -4,12 +4,14 @@
 #include "debug.hpp"
 #include "queue_manager.hpp"
 #include "message.hpp"
+#include "config.hpp"
 
 // triggers
-#include "sensors/sensor_button.hpp"
+//#include "sensors/sensor_button.hpp"
+#include "sensors/sensor_event.hpp"
 #include "sensors/sensor_dht11.hpp"
-#include "sensors/sensor_flame.hpp"
-#include "sensors/sensor_pir.hpp"
+//#include "sensors/sensor_flame.hpp"
+//#include "sensors/sensor_pir.hpp"
 
 // slaves
 #include "sensors/sensor_led.hpp"
@@ -24,7 +26,13 @@
 #define EVENT_OFF       "0"
 
 
-void event_on (
+static config_class* config (
+        void)
+{
+   return config_class::instance ();
+}
+
+static void event_on (
         const sensor_manager_class* p_sensor_manager,
         const sensor_event_class* p_sensor)
 {
@@ -41,7 +49,7 @@ void event_on (
     queue_manager_class::instance ()->add_message (p_message);
 }
 
-void event_off (
+static void event_off (
         const sensor_manager_class* p_sensor_manager,
         const sensor_event_class* p_sensor)
 {
@@ -60,6 +68,17 @@ void event_off (
     p_sensor_temp->activate ();
 }
 
+/*static void led_on (
+        )
+{
+
+}
+
+static void led_off (
+        )
+{
+
+}*/
 
 sensor_manager_class *sensor_manager_class::p_instance = 0;
 
@@ -113,10 +132,8 @@ error_code_t sensor_manager_class::setup_board (
     return result;
 }
 
-error_code_t sensor_manager_class::add_sensor (
-        const char* p_name,
-        const unsigned int gpio,
-        const char* p_type)
+error_code_t sensor_manager_class::add_sensors (
+        void)
 {
     error_code_t result = RESULT_OK;
     DEBUG_LOG_TRACE_BEGIN
@@ -125,6 +142,29 @@ error_code_t sensor_manager_class::add_sensor (
     {
         //result = setup_board ();
     }
+
+    if (result == RESULT_OK)
+    {
+        std::vector <sensor_settings_t>::const_iterator sensor;
+        for (sensor = config ()->sensors.begin(); sensor != config ()->sensors.end() && result == RESULT_OK; ++ sensor)
+        {
+            result = add_sensor (sensor->name.c_str (), sensor->gpio, sensor->type.c_str ());
+        }
+    }
+
+    DEBUG_LOG_TRACE_END (result)
+    return result;
+}
+
+error_code_t sensor_manager_class::add_sensor (
+        const char* p_name,
+        const unsigned int gpio,
+        const char* p_type)
+{
+    error_code_t result = RESULT_OK;
+    DEBUG_LOG_TRACE_BEGIN
+
+
 
     if (result == RESULT_OK)
     {
@@ -149,6 +189,11 @@ error_code_t sensor_manager_class::add_sensor (
         {
             sensor_pir_class* p_pir = new sensor_pir_class (gpio, p_name);
             p_pir->set_event_callback (event_on, event_off, this);
+
+            //sensor_led_class* p_led = new sensor_led_class (gpio, p_name);
+            //p_led->activate ();
+            //p_pir->set_event_callback (led_on, led_off, this, p_led);
+
             p_pir->activate ();
         }
         else if (strcmp (p_type, "LED") == 0)

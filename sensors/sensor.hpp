@@ -10,6 +10,7 @@ protected:
     unsigned char sensor_gpio_num;
     char p_sensor_name [64];
     char p_sensor_type [16];
+    volatile bool activated;
 
 public:
 
@@ -21,6 +22,7 @@ public:
         sensor_gpio_num = sensor_gpio_num_;
         strncpy (p_sensor_name, p_sensor_name_, sizeof (p_sensor_name));
         strncpy (p_sensor_type, p_sensor_type_, sizeof (p_sensor_type));
+        activated = false;
     }
 
     virtual ~sensor_class (
@@ -49,6 +51,12 @@ public:
 
     virtual void activate (
             void) = 0;
+
+    bool is_active (
+            void)
+    {
+        return activated;
+    }
 };
 
 #endif // SENSOR_HPP

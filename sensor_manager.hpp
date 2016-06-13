@@ -19,6 +19,11 @@ private:
     error_code_t setup_board (
             void);
 
+    error_code_t add_sensor (
+            const char* p_name,
+            const unsigned int gpio,
+            const char* p_type);
+
 public:
     sensor_manager_class (
             void);
@@ -30,11 +35,10 @@ public:
             p_instance = new sensor_manager_class();
         return p_instance;
     }*/
+    error_code_t add_sensors (
+            void);
 
-    error_code_t add_sensor (
-            const char* p_name,
-            const unsigned int gpio,
-            const char* p_type);
+
 };
 
 #endif // SENSOR_MANAGER_HPP
