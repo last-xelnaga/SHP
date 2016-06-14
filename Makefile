@@ -16,3 +16,5 @@ clean:
 	make -f makefile.client clean
 	make -f makefile.proxy clean
 	make -f makefile.test clean
+
+# valgrind --leak-check=full --show-leak-kinds=all ./shp_client
