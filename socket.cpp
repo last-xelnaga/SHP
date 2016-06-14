@@ -1,11 +1,12 @@
 
+#include "socket.hpp"
+#include "debug.hpp"
+
 #include <netdb.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
 #include <fcntl.h>
-#include "socket.hpp"
-#include "debug.hpp"
 
 
 socket_class::socket_class (

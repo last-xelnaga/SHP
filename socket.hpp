@@ -14,9 +14,10 @@ protected:
     char p_server_name[256];
     unsigned int connect_retry_sleep;
     unsigned int try_count_max;
-    unsigned int write_timeout; 
+    unsigned int write_timeout;
     unsigned int read_timeout;
 
+protected:
     socket_class (
             void);
 
@@ -31,6 +32,9 @@ protected:
             unsigned int to_receive);
 
 public:
+    virtual ~socket_class (
+            void) {}
+
     virtual error_code_t create_fd (
             void) = 0;
 
@@ -43,7 +47,7 @@ class client_socket_class : public socket_class
 
 public:
     client_socket_class (
-            void) {};
+            void);
 
     client_socket_class (
             const char* p_server_name,
@@ -59,6 +63,9 @@ public:
     error_code_t recv_data (
             unsigned char* p_buffer,
             unsigned int to_receive);
+
+    virtual ~client_socket_class (
+            void) {}
 };
 
 class server_socket_class : public socket_class
@@ -86,6 +93,9 @@ public:
 
     void close_client (
             void);
+
+    virtual ~server_socket_class (
+            void) {}
 };
 
 #endif // SOCKET_HPP
