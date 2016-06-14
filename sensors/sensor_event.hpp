@@ -10,8 +10,8 @@ class sensor_manager_class;
 class sensor_event_class;
 
 typedef void (*f_event_callback) (
-        const sensor_manager_class* p_sensor_manager,
-        const sensor_event_class* p_sensor);
+        sensor_manager_class* const p_sensor_manager,
+        sensor_event_class* const p_sensor);
 
 
 class sensor_event_class : public sensor_class
@@ -35,7 +35,7 @@ public:
     void set_event_callback (
             f_event_callback p_event_on_callback_,
             f_event_callback p_event_off_callback_,
-            const sensor_manager_class* p_sensor_manager_);
+            const sensor_manager_class* const p_sensor_manager_);
 
     void activate (
             void);

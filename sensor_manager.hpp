@@ -2,18 +2,21 @@
 #ifndef SENSOR_MANAGER_HPP
 #define SENSOR_MANAGER_HPP
 
-//#include <vector>
-//#include "sensors/sensor.hpp"
 #include "error_codes.hpp"
+#include <vector>
+
+class queue_class;
+class message_class;
+class sensor_class;
 
 class sensor_manager_class
 {
 private:
-    static sensor_manager_class* p_instance;
-
     bool is_initialized;
 
-    //std::vector <sensor_settings_t> sensors;
+    queue_class* p_queue;
+
+    std::vector <sensor_class*> sensors;
 
 private:
     error_code_t setup_board (
@@ -28,17 +31,17 @@ public:
     sensor_manager_class (
             void);
 
-    /*static sensor_manager_class* instance (
-        void)
-    {
-        if (!p_instance)
-            p_instance = new sensor_manager_class();
-        return p_instance;
-    }*/
-    error_code_t add_sensors (
+    error_code_t setup_sensors (
+            queue_class* const p_queue_);
+
+    error_code_t activate_sensors (
             void);
 
+    void add_to_queue (
+            message_class* const p_message);
 
+    ~sensor_manager_class (
+            void);
 };
 
 #endif // SENSOR_MANAGER_HPP

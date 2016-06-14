@@ -5,12 +5,13 @@
 
 #include "config.hpp"
 #include "sensor_manager.hpp"
-#include "queue_manager.hpp"
 #include "debug.hpp"
+#include "message.hpp"
+#include "queue.hpp"
 #include "socket.hpp"
 
-int led_works = 0;
-int led_works2 = 0;
+//int led_works = 0;
+//int led_works2 = 0;
 
 /*int reset_callback (
         const void* p_user_data)
@@ -71,40 +72,116 @@ static config_class* config (
    return config_class::instance ();
 }
 
-int main (
-    int argc,
-    char **argv)
+error_code_t send_message (
+        client_socket_class* const p_socket,
+        message_class* const p_message)
 {
     error_code_t result = RESULT_OK;
     DEBUG_LOG_TRACE_BEGIN
 
+    if (result == RESULT_OK)
+    {
+        result = p_socket->create_fd ();
+    }
 
+    if (result == RESULT_OK)
+    {
+        unsigned char* p_data = 0;
+        unsigned int data_length = 0;
+        p_message->get_header (&p_data, &data_length);
+        result = p_socket->send_data (p_data, data_length);
+    }
+
+    if (result == RESULT_OK)
+    {
+        unsigned char* p_data = 0;
+        unsigned int data_length = 0;
+        p_message->get_payload (&p_data, &data_length);
+        result = p_socket->send_data (p_data, data_length);
+    }
+
+    p_socket->close_fd ();
+
+    DEBUG_LOG_TRACE_END (result)
+    return result;
+}
+
+int main (
+        int argc,
+        char **argv)
+{
+    error_code_t result = RESULT_OK;
+    sensor_manager_class* p_sensor_manager = NULL;
+    queue_class* p_queue = NULL;
+    client_socket_class* p_socket = NULL;
+    DEBUG_LOG_TRACE_BEGIN
+
+    // create and read config
     if (result == RESULT_OK)
     {
         result = config ()->read_config ("shp_client.cfg");
     }
 
-    sensor_manager_class* p_sensor_manager = new sensor_manager_class ();
-
+    // organize a queue
     if (result == RESULT_OK)
     {
-        /*std::vector <sensor_settings_t>::const_iterator sensor;
-        for (sensor = config ()->sensors.begin(); sensor != config ()->sensors.end() && result == RESULT_OK; ++ sensor)
-        {
-            result = p_sensor_manager->add_sensor (sensor->p_name, sensor->gpio, sensor->p_type);
-        }*/
-        p_sensor_manager->add_sensors ();
+        p_queue = new queue_class ();
     }
 
+    // create sensor manager, initialize and verify settings
     if (result == RESULT_OK)
     {
-        client_socket_class client_socket (config ()->network.address.c_str (),
+        p_sensor_manager = new sensor_manager_class ();
+        p_sensor_manager->setup_sensors (p_queue);
+    }
+
+    // send config
+    if (result == RESULT_OK)
+    {
+        p_socket = new client_socket_class (config ()->network.address.c_str (),
                 config ()->network.port);
-
-        queue_manager_class::instance ()->run (&client_socket);
     }
 
+    if (result == RESULT_OK)
+    {
+        p_sensor_manager->activate_sensors ();
+    }
+
+    // loop
+    if (result == RESULT_OK)
+    {
+        int x = 10;
+
+        while (result == RESULT_OK && x >= 0)
+        {
+            unsigned int message_id = 0;
+            message_class* p_message = NULL;
+
+            result = p_queue->peek (&message_id, &p_message);
+            if (message_id == 0)
+            {
+                //sleep (1);
+                usleep (500000);
+                continue;
+            }
+
+            if (result == RESULT_OK)
+            {
+                result = send_message (p_socket, p_message);
+            }
+
+            if (result == RESULT_OK)
+            {
+                p_queue->remove (message_id);
+                x --;
+            }
+        }
+    }
+
+    delete config_class::instance ();
     delete p_sensor_manager;
+    delete p_queue;
+    delete p_socket;
 
     /*sensor_led_class* p_status_led = new sensor_led_class(0, "status");
     p_status_led->activate();
