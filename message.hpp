@@ -62,6 +62,9 @@ public:
     message_class (
             message_id_t type);
 
+    message_class (
+            message_header_t header_);
+
     /*
      * Function adds a field to the message. Message will be stored in TLV format.
      * In case of huge size of the payload the message buffer will be reallocated.
@@ -97,10 +100,6 @@ public:
             const field_id_t field_id,
             unsigned int* payload_size,
             unsigned char** p_payload);
-
-    error_code_t set_payload (
-            unsigned char* p_data,
-            unsigned int data_length);
 
     void get_header (
             unsigned char** p_data,

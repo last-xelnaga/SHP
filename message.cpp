@@ -27,6 +27,31 @@ message_class::message_class (
     DEBUG_LOG_TRACE_END (RESULT_OK)
 }
 
+message_class::message_class (
+        message_header_t header_)
+{
+    DEBUG_LOG_TRACE_BEGIN
+
+    header.message_version = header_.message_version;
+    header.message_id = header_.message_id;
+    header.payload_size = 0;
+    header.message_result = header_.message_result;
+
+    if (header_.payload_size)
+    {
+        header.payload_size = header_.payload_size;
+        p_raw_payload = new unsigned char [header_.payload_size];
+        message_alloc_size = header_.payload_size;
+    }
+    else
+    {
+        p_raw_payload = NULL;
+        message_alloc_size = 0;
+    }
+
+    DEBUG_LOG_TRACE_END (RESULT_OK)
+}
+
 error_code_t message_class::add_field_to_message (
         const field_id_t field_id,
         const unsigned char* p_payload,
@@ -150,45 +175,6 @@ error_code_t message_class::get_field_from_message (
         {
             size_to_parse -= sizeof (field_id_t) + sizeof (unsigned int) + current_payload_size;
             p_message_pointer += current_payload_size;
-        }
-    }
-
-    DEBUG_LOG_TRACE_END (result)
-    return result;
-}
-
-error_code_t message_class::set_payload (
-        unsigned char* p_data,
-        unsigned int data_length)
-{
-    error_code_t result = RESULT_OK;
-    DEBUG_LOG_TRACE_BEGIN
-
-    if (result == RESULT_OK)
-    {
-        header.payload_size = 0;
-
-        if (p_raw_payload != NULL)
-            delete[] p_raw_payload;
-
-        p_raw_payload = NULL;
-        message_alloc_size = 0;
-    }
-
-    if (result == RESULT_OK)
-    {
-        p_raw_payload = new unsigned char [data_length];
-        if (p_raw_payload == NULL)
-        {
-            DEBUG_LOG_MESSAGE ("failed to allocate memory block");
-            result = RESULT_NOT_ENOUGH_MEMORY;
-        }
-        else
-        {
-            DEBUG_LOG_MESSAGE ("p_raw_payload %d", p_raw_payload);
-
-            message_alloc_size = data_length;
-            header.payload_size = data_length;
         }
     }
 

@@ -1,14 +1,14 @@
 
-#include <stdio.h>
-#include <unistd.h>
-#include <signal.h>
-
 #include "config.hpp"
 #include "sensor_manager.hpp"
 #include "debug.hpp"
 #include "message.hpp"
 #include "queue.hpp"
-#include "socket.hpp"
+#include "socket_client.hpp"
+
+#include <stdio.h>
+#include <unistd.h>
+//#include <signal.h>
 
 //int led_works = 0;
 //int led_works2 = 0;
@@ -77,30 +77,28 @@ error_code_t send_message (
         message_class* const p_message)
 {
     error_code_t result = RESULT_OK;
+    message_class* p_answer = NULL;
     DEBUG_LOG_TRACE_BEGIN
 
     if (result == RESULT_OK)
     {
-        result = p_socket->create_fd ();
+        result = p_socket->connect (config ()->network.address.c_str (),
+                config ()->network.port);
     }
 
     if (result == RESULT_OK)
     {
-        unsigned char* p_data = 0;
-        unsigned int data_length = 0;
-        p_message->get_header (&p_data, &data_length);
-        result = p_socket->send_data (p_data, data_length);
+        result = p_socket->send_and_receive (p_message, &p_answer);
     }
 
     if (result == RESULT_OK)
     {
-        unsigned char* p_data = 0;
-        unsigned int data_length = 0;
-        p_message->get_payload (&p_data, &data_length);
-        result = p_socket->send_data (p_data, data_length);
+        // check the answer
     }
 
-    p_socket->close_fd ();
+    p_socket->close ();
+
+    delete p_answer;
 
     DEBUG_LOG_TRACE_END (result)
     return result;
@@ -138,8 +136,7 @@ int main (
     // send config
     if (result == RESULT_OK)
     {
-        p_socket = new client_socket_class (config ()->network.address.c_str (),
-                config ()->network.port);
+        p_socket = new client_socket_class ();
     }
 
     if (result == RESULT_OK)
@@ -150,9 +147,9 @@ int main (
     // loop
     if (result == RESULT_OK)
     {
-        int x = 10;
+        //int x = 100;
 
-        while (result == RESULT_OK && x >= 0)
+        while (result == RESULT_OK /*&& x >= 0*/)
         {
             unsigned int message_id = 0;
             message_class* p_message = NULL;
@@ -160,7 +157,6 @@ int main (
             result = p_queue->peek (&message_id, &p_message);
             if (message_id == 0)
             {
-                //sleep (1);
                 usleep (500000);
                 continue;
             }
@@ -173,7 +169,7 @@ int main (
             if (result == RESULT_OK)
             {
                 p_queue->remove (message_id);
-                x --;
+                //x --;
             }
         }
     }

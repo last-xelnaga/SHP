@@ -7,25 +7,221 @@
 #include <errno.h>
 #include <string.h>
 #include <fcntl.h>
+#include <netinet/in.h>
 
 
-socket_class::socket_class (
-        void)
+error_code_t create_socket (
+        int* fd)
 {
-    socket_fd = -1;
-    memset (&socket_address, 0, sizeof (sockaddr_in));
-    port_number = 3456;
-    strcpy (p_server_name, "127.0.0.1");
-    connect_retry_sleep = 2;
-    try_count_max = 3;
-    write_timeout = 10;
-    read_timeout = 60;
+    error_code_t result = RESULT_OK;
+    int socket_fd = -1;
+    DEBUG_LOG_TRACE_BEGIN
+
+    if (result == RESULT_OK)
+    {
+        socket_fd = socket (AF_INET, SOCK_STREAM, IPPROTO_IP);
+        if (socket_fd < 0)
+        {
+            DEBUG_LOG_MESSAGE ("socket call failed: %s", strerror (errno));
+            result = RESULT_SYSTEM_ERROR;
+        }
+    }
+
+    if (result == RESULT_OK)
+    {
+        *fd = socket_fd;
+    }
+
+    DEBUG_LOG_TRACE_END (result)
+    return result;
 }
 
-error_code_t socket_class::send_data (
-        int fd,
+error_code_t connect_to_server (
+        const int fd,
+        const char* p_server_name,
+        unsigned int port_number)
+{
+    error_code_t result = RESULT_OK;
+    struct hostent* p_host = NULL;
+    struct sockaddr_in socket_address;
+    DEBUG_LOG_TRACE_BEGIN
+
+    if (fd < 0)
+    {
+        DEBUG_LOG_MESSAGE ("invalid socket param");
+        result = RESULT_INVALID_PARAM;
+    }
+
+    if (result == RESULT_OK)
+    {
+        p_host = gethostbyname (p_server_name);
+        if (p_host == NULL)
+        {
+            DEBUG_LOG_MESSAGE ("gethostbyname call failed: %s", strerror (errno));
+            result = RESULT_SOCKET_ERROR;
+        }
+    }
+
+    if (result == RESULT_OK)
+    {
+        memcpy ((char*)&socket_address.sin_addr, p_host->h_addr, p_host->h_length);
+        socket_address.sin_family = AF_INET;
+        socket_address.sin_port = htons (port_number);
+    }
+
+    if (result == RESULT_OK)
+    {
+        int res = connect (fd, (struct sockaddr*)&socket_address, sizeof (sockaddr_in));
+        if (res < 0)
+        {
+            DEBUG_LOG_MESSAGE ("connect call failed: %s", strerror (errno));
+            result = RESULT_SYSTEM_ERROR;
+        }
+    }
+
+    DEBUG_LOG_TRACE_END (result)
+    return result;
+}
+
+error_code_t bind_on_server (
+        const int fd,
+        unsigned int port_number)
+{
+    error_code_t result = RESULT_OK;
+    struct sockaddr_in socket_address;
+    DEBUG_LOG_TRACE_BEGIN
+
+    if (fd < 0)
+    {
+        DEBUG_LOG_MESSAGE ("invalid socket param");
+        result = RESULT_INVALID_PARAM;
+    }
+
+    if (result == RESULT_OK)
+    {
+        int flag = 1;
+        int res = setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof (flag));
+        if (res < 0)
+        {
+            DEBUG_LOG_MESSAGE ("setsockopt call failed: %s", strerror (errno));
+            result = RESULT_SYSTEM_ERROR;
+        }
+    }
+
+    if (result == RESULT_OK)
+    {
+        socket_address.sin_family = AF_INET;
+        socket_address.sin_addr.s_addr = htonl (INADDR_ANY);
+        socket_address.sin_port = htons (port_number);
+    }
+
+    if (result == RESULT_OK)
+    {
+        int res = bind (fd, (struct sockaddr *) &socket_address, sizeof (struct sockaddr_in));
+        if (res < 0)
+        {
+            DEBUG_LOG_MESSAGE ("bind call failed: %s", strerror (errno));
+            result = RESULT_SYSTEM_ERROR;
+        }
+    }
+
+    if (result == RESULT_OK)
+    {
+        int res = listen (fd, 1);
+        if (res < 0)
+        {
+            DEBUG_LOG_MESSAGE ("listen call failed: %s", strerror (errno));
+            result = RESULT_SYSTEM_ERROR;
+        }
+    }
+
+    DEBUG_LOG_TRACE_END (result)
+    return result;
+}
+
+error_code_t set_blocking (
+        const int fd,
+        bool is_blocking)
+{
+    error_code_t result = RESULT_OK;
+    int new_flags = -1;
+    int flags = -1;
+    DEBUG_LOG_TRACE_BEGIN
+
+    if (fd < 0)
+    {
+        DEBUG_LOG_MESSAGE ("invalid socket param");
+        result = RESULT_INVALID_PARAM;
+    }
+
+    // get flags
+    if (result == RESULT_OK)
+    {
+        flags = fcntl (fd, F_GETFL, 0);
+        if (flags == -1)
+        {
+            DEBUG_LOG_MESSAGE ("fcntl call failed: %s", strerror (errno));
+            result = RESULT_SYSTEM_ERROR;
+        }
+    }
+
+    // prepare new flags
+    if (result == RESULT_OK)
+    {
+        new_flags = flags | O_NONBLOCK;
+        if (is_blocking == false)
+        {
+            new_flags = flags & ~O_NONBLOCK;
+        }
+    }
+
+    // set flags
+    if (result == RESULT_OK)
+    {
+        flags = fcntl (fd, F_SETFL, new_flags);
+        if (flags == -1)
+        {
+            DEBUG_LOG_MESSAGE ("fcntl call failed: %s", strerror (errno));
+            result = RESULT_SYSTEM_ERROR;
+        }
+    }
+
+    DEBUG_LOG_TRACE_END (result)
+    return result;
+}
+
+error_code_t accept (
+        const int fd,
+        int* accept_fd)
+{
+    error_code_t result = RESULT_OK;
+    int client_fd = -1;
+    DEBUG_LOG_TRACE_BEGIN
+
+    if (result == RESULT_OK)
+    {
+        client_fd = accept (fd, NULL, NULL);
+        if (client_fd < 0)
+        {
+            DEBUG_LOG_MESSAGE ("accept call failed: %s", strerror (errno));
+            result = RESULT_SYSTEM_ERROR;
+        }
+    }
+
+    if (result == RESULT_OK)
+    {
+        *accept_fd = client_fd;
+    }
+
+    DEBUG_LOG_TRACE_END (result)
+    return result;
+}
+
+error_code_t send_data (
+        const int fd,
         unsigned char* p_buffer,
-        unsigned int total_to_send)
+        unsigned int total_to_send,
+        unsigned int timeout)
 {
     error_code_t result = RESULT_OK;
     struct timeval tv;
@@ -38,7 +234,7 @@ error_code_t socket_class::send_data (
 
     // Initialize time out struct
     tv.tv_sec = 0;
-    tv.tv_usec = write_timeout * 1000;
+    tv.tv_usec = timeout * 1000;
 
     do
     {
@@ -82,10 +278,11 @@ error_code_t socket_class::send_data (
     return result;
 }
 
-error_code_t socket_class::recv_data (
-        int fd,
+error_code_t recv_data (
+        const int fd,
         unsigned char* p_buffer,
-        unsigned int to_receive)
+        unsigned int to_receive,
+        unsigned int timeout)
 {
     error_code_t result = RESULT_OK;
     struct timeval tv;
@@ -100,7 +297,7 @@ error_code_t socket_class::recv_data (
 
     // Initialize time out struct
     tv.tv_sec = 0;
-    tv.tv_usec = read_timeout * 1000;
+    tv.tv_usec = timeout * 1000;
 
     do
     {
@@ -146,423 +343,15 @@ error_code_t socket_class::recv_data (
     return result;
 }
 
-
-void socket_class::close_fd (
-        void)
+void close_socket (
+        const int fd)
 {
     DEBUG_LOG_TRACE_BEGIN
 
-    if (socket_fd >= 0)
+    if (fd >= 0)
     {
-        close (socket_fd);
-        socket_fd = -1;
+        close (fd);
     }
 
     DEBUG_LOG_TRACE_END (RESULT_OK)
 }
-
-client_socket_class::client_socket_class (
-        const char* p_server,
-        unsigned int port)
-{
-    strcpy (p_server_name, p_server);
-    port_number = port;
-}
-
-error_code_t client_socket_class::create_fd (
-    void)
-{
-    error_code_t result = RESULT_OK;
-    DEBUG_LOG_TRACE_BEGIN
-
-    socket_fd = socket (AF_INET, SOCK_STREAM, IPPROTO_IP);
-    if (socket_fd < 0)
-    {
-        DEBUG_LOG_MESSAGE ("socket call failed: %s", strerror(errno));
-        result = RESULT_SYSTEM_ERROR;
-    }
-
-    // Get system information
-    if (result == 0)
-    {
-        struct hostent* hPtr = gethostbyname (p_server_name);
-        if (hPtr == NULL)
-        {
-            DEBUG_LOG_MESSAGE ("gethostbyname failed: %s", strerror(errno));
-            result = RESULT_SOCKET_ERROR;
-        }
-        else
-        {
-            memcpy ((char*)&socket_address.sin_addr, hPtr->h_addr, hPtr->h_length);
-            socket_address.sin_family = AF_INET;
-            socket_address.sin_port = htons ((u_short)port_number);
-        }
-    }
-
-    // Load system information for remote socket server into socket data structures
-    if (result == RESULT_OK)
-    {
-        int res = 0;
-        unsigned int try_count = 0;
-
-        do
-        {
-            if (try_count)
-            {
-                sleep (connect_retry_sleep);
-            }
-
-            res = connect (socket_fd, (struct sockaddr*)&socket_address, sizeof(sockaddr_in));
-            if (res < 0)
-            {
-                DEBUG_LOG_MESSAGE ("connect call failed: %s. try once again", strerror(errno));
-                try_count ++;
-            }
-        } while (res < 0 && try_count < try_count_max);
-
-        if (try_count >= try_count_max)
-        {
-            // no attempts left
-            DEBUG_LOG_MESSAGE ("connect call failed: %s. no attempts left", strerror(errno));
-            result = RESULT_SOCKET_ERROR;
-        }
-    }
-
-    // set non-blocking mode
-    if (result == RESULT_OK)
-    {
-        int res = fcntl (socket_fd, F_GETFL, 0);
-        if (res != -1)
-            fcntl (socket_fd, F_SETFL, res | O_NONBLOCK);
-    }
-    else
-    {
-        close_fd();
-    }
-
-    DEBUG_LOG_TRACE_END (result)
-    return result;
-}
-
-error_code_t client_socket_class::send_data (
-        unsigned char* p_buffer,
-        unsigned int total_to_send)
-{
-    return socket_class::send_data (socket_fd, p_buffer, total_to_send);
-}
-
-error_code_t client_socket_class::recv_data (
-        unsigned char* p_buffer,
-        unsigned int to_receive)
-{
-    return socket_class::recv_data (socket_fd, p_buffer, to_receive);
-}
-
-server_socket_class::server_socket_class (
-        void)
-{
-    accept_fd = -1;
-}
-
-error_code_t server_socket_class::create_fd (
-        void)
-{
-    error_code_t result = RESULT_OK;
-    DEBUG_LOG_TRACE_BEGIN
-
-    socket_fd = socket (AF_INET, SOCK_STREAM, IPPROTO_IP);
-    if (socket_fd < 0)
-    {
-        DEBUG_LOG_MESSAGE ("socket call failed: %s", strerror(errno));
-        result = RESULT_SYSTEM_ERROR;
-    }
-    else
-    {
-        socket_address.sin_family = AF_INET;
-        socket_address.sin_addr.s_addr = htonl (INADDR_ANY);
-        socket_address.sin_port = htons (port_number);
-    }
-
-    if (result == RESULT_OK)
-    {
-        int yes = 1;
-        int res = setsockopt (socket_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof (yes));
-        if (res < 0)
-        {
-            DEBUG_LOG_MESSAGE ("setsockopt failed: %s", strerror(errno));
-            result = RESULT_SYSTEM_ERROR;
-        }
-    }
-
-    if (result == RESULT_OK)
-    {
-        int res = bind (socket_fd, (struct sockaddr *) &socket_address, sizeof (struct sockaddr_in));
-        if (res < 0)
-        {
-            DEBUG_LOG_MESSAGE ("bind failed: %s", strerror(errno));
-            result = RESULT_SYSTEM_ERROR;
-        }
-    }
-
-    if (result == RESULT_OK)
-    {
-        int res = listen (socket_fd, 1);
-        if (res < 0)
-        {
-            DEBUG_LOG_MESSAGE ("listen failed: %s", strerror(errno));
-            result = RESULT_SYSTEM_ERROR;
-        }
-    }
-
-    if (result != RESULT_OK)
-    {
-        close_fd();
-    }
-
-    DEBUG_LOG_TRACE_END (result)
-    return result;
-}
-
-error_code_t server_socket_class::accept_client (
-        void)
-{
-    error_code_t result = RESULT_OK;
-    DEBUG_LOG_TRACE_BEGIN
-
-    if (socket_fd < 0)
-    {
-        DEBUG_LOG_MESSAGE ("socket is not ready");
-        result = RESULT_INVALID_STATE;
-    }
-
-    // set blocking mode
-    if (result == RESULT_OK)
-    {
-        int res = fcntl (socket_fd, F_GETFL, 0);
-        if (res != -1)
-            fcntl (socket_fd, F_SETFL, res & ~O_NONBLOCK);
-    }
-
-    if (result == RESULT_OK)
-    {
-        accept_fd = accept (socket_fd, NULL, NULL);
-        if (accept_fd < 0)
-        {
-            DEBUG_LOG_MESSAGE ("accept failed: %s", strerror(errno));
-            result = RESULT_SOCKET_ERROR;
-        }
-    }
-
-    // set non-blocking mode
-    if (result == RESULT_OK)
-    {
-        int res = fcntl (socket_fd, F_GETFL, 0);
-        if (res != -1)
-            fcntl (socket_fd, F_SETFL, res | O_NONBLOCK);
-    }
-
-    DEBUG_LOG_TRACE_END (result)
-    return result;
-}
-
-error_code_t server_socket_class::send_data (
-        unsigned char* p_buffer,
-        unsigned int total_to_send)
-{
-    return socket_class::send_data (accept_fd, p_buffer, total_to_send);
-}
-
-error_code_t server_socket_class::recv_data (
-        unsigned char* p_buffer,
-        unsigned int to_receive)
-{
-    return socket_class::recv_data (accept_fd, p_buffer, to_receive);
-}
-
-void server_socket_class::close_client (
-        void)
-{
-    DEBUG_LOG_TRACE_BEGIN
-
-    if (accept_fd >= 0)
-    {
-        close (accept_fd);
-        accept_fd = -1;
-    }
-
-    DEBUG_LOG_TRACE_END (RESULT_OK)
-}
-
-
-/*
-error_code_t server_accept_and_receive(
-        message_buffer_t* const p_message,
-        const int listen_fd,
-        int* const accept_fd)
-{
-    error_code_t result = SEC_DAEMON_RESULT_OK;
-    SECD_DEBUG_LOG_TRACE_BEGIN();
-
-    if (result == SEC_DAEMON_RESULT_OK)
-    {
-        *accept_fd = accept_socket(listen_fd);
-        if (*accept_fd == -1)
-        {
-            SECD_DEBUG_LOG_ERROR("accept_socket failed");
-            result = SEC_DAEMON_SOCKET_ERROR;
-        }
-    }
-
-    // and start to read data from socket
-    if (result == SEC_DAEMON_RESULT_OK)
-    {
-        result = recv_data(*accept_fd, (unsigned char*)&p_message->header,
-                sizeof(message_header_t));
-    }
-
-    // check header version
-    if (result == SEC_DAEMON_RESULT_OK)
-    {
-        if (p_message->header.message_version != CURRENT_MESSAGE_VERSION)
-        {
-            SECD_DEBUG_LOG_ERROR("incorrect message version. current %d, "
-                    "but received %d", CURRENT_MESSAGE_VERSION,
-                    p_message->header.message_version);
-            result = SEC_DAEMON_TRANSPORT_ERROR;
-        }
-    }
-
-    // adjust size of message
-    if (result == SEC_DAEMON_RESULT_OK)
-    {
-        if (p_message->header.payload_size > p_message->message_alloc_size)
-        {
-            p_message->message_data = (unsigned char*)realloc_debug(
-                    p_message->message_data, p_message->header.payload_size);
-            if (p_message->message_data == NULL)
-            {
-                SECD_DEBUG_LOG_ERROR("failed to allocate memory block");
-                result = SEC_DAEMON_NOT_ENOUGH_MEMORY;
-            }
-            else
-            {
-                p_message->message_alloc_size = p_message->header.payload_size;
-                SECD_DEBUG_LOG_INFO("new_message_alloc_size %d",
-                        p_message->header.payload_size);
-            }
-        }
-    }
-
-    if ((result == SEC_DAEMON_RESULT_OK) && (p_message->header.payload_size > 0))
-    {
-        result = recv_data(*accept_fd, p_message->message_data,
-                p_message->header.payload_size);
-    }
-
-    SECD_DEBUG_LOG_ERROR_END(result);
-    return result;
-}
-
-error_code_t server_send(
-        message_buffer_t* const p_message,
-        const int accept_fd)
-{
-    error_code_t result = SEC_DAEMON_RESULT_OK;
-    SECD_DEBUG_LOG_TRACE_BEGIN();
-
-    if (result == SEC_DAEMON_RESULT_OK)
-    {
-        result = send_data(accept_fd, (unsigned char*)&p_message->header,
-                sizeof(message_header_t));
-    }
-
-    if ((result == SEC_DAEMON_RESULT_OK) && (p_message->header.payload_size > 0))
-    {
-        result = send_data(accept_fd, p_message->message_data,
-                p_message->header.payload_size);
-    }
-
-    SECD_DEBUG_LOG_ERROR_END(result);
-    return result;
-}
-
-error_code_t client_send_and_receive(
-        message_buffer_t* const p_message,
-        const char* const p_socket_name)
-{
-    int fd = -1;
-    error_code_t result = SEC_DAEMON_RESULT_OK;
-    SECD_DEBUG_LOG_TRACE_BEGIN();
-
-    if (result == SEC_DAEMON_RESULT_OK)
-    {
-        fd = create_client_socket(p_socket_name);
-        if (fd < 0)
-        {
-            SECD_DEBUG_LOG_ERROR("create_client_socket failed");
-            result = SEC_DAEMON_SOCKET_ERROR;
-        }
-    }
-
-    if (result == SEC_DAEMON_RESULT_OK)
-    {
-        result = send_data(fd, (unsigned char*)&p_message->header,
-                sizeof(message_header_t));
-    }
-
-    if ((result == SEC_DAEMON_RESULT_OK) && (p_message->header.payload_size > 0))
-    {
-        result = send_data(fd, p_message->message_data,
-                p_message->header.payload_size);
-    }
-
-    if (result == SEC_DAEMON_RESULT_OK)
-    {
-        result = recv_data(fd, (unsigned char*)&p_message->header,
-                sizeof(message_header_t));
-    }
-
-    // check header version
-    if (result == SEC_DAEMON_RESULT_OK)
-    {
-        if(p_message->header.message_version != CURRENT_MESSAGE_VERSION)
-        {
-            SECD_DEBUG_LOG_ERROR("incorrect message version. current %d, "
-                    "but received %d", CURRENT_MESSAGE_VERSION,
-                    p_message->header.message_version);
-            result = SEC_DAEMON_TRANSPORT_ERROR;
-        }
-    }
-
-    // adjust size of message
-    if (result == SEC_DAEMON_RESULT_OK)
-    {
-        if (p_message->header.payload_size > p_message->message_alloc_size)
-        {
-            p_message->message_data = (unsigned char*)realloc_debug(
-                    p_message->message_data, p_message->header.payload_size);
-            if (p_message->message_data == NULL)
-            {
-                SECD_DEBUG_LOG_ERROR("failed to allocate memory");
-                result = SEC_DAEMON_NOT_ENOUGH_MEMORY;
-            }
-            else
-            {
-                p_message->message_alloc_size = p_message->header.payload_size;
-            }
-        }
-    }
-
-    if ((result == SEC_DAEMON_RESULT_OK) && (p_message->header.payload_size > 0))
-    {
-        result = recv_data(fd, p_message->message_data,
-                p_message->header.payload_size);
-    }
-
-    close_socket(fd);
-    fd = -1;
-
-    SECD_DEBUG_LOG_TRACE_END(result);
-    return result;
-}
-*/

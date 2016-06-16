@@ -38,6 +38,7 @@ SRC	+= \
 	message.cpp \
 	queue.cpp \
 	sensor_manager.cpp \
+	socket_client.cpp \
 	socket.cpp
 
 OBJ = $(SRC:%.cpp=$(OBJDIR)/%.o)
@@ -66,10 +67,11 @@ $(OBJDIR)/sensors/sensor_relay.o: sensors/sensor_relay.hpp sensors/sensor.hpp ma
 $(OBJDIR)/sensors/sensor_servo.o: sensors/sensor_servo.hpp sensors/sensor.hpp makefile.client
 
 # main
-$(OBJDIR)/client_main.o: config.hpp debug.hpp sensor_manager.hpp queue.hpp socket.hpp error_codes.hpp makefile.client
+$(OBJDIR)/client_main.o: config.hpp debug.hpp sensor_manager.hpp queue.hpp socket_client.hpp error_codes.hpp makefile.client
 $(OBJDIR)/config.o: config.hpp debug.hpp error_codes.hpp makefile.client
 $(OBJDIR)/debug.o: debug.hpp error_codes.hpp makefile.client
 $(OBJDIR)/message.o: message.hpp debug.hpp error_codes.hpp makefile.client
 $(OBJDIR)/queue.o: queue.hpp message.hpp debug.hpp error_codes.hpp makefile.client
 $(OBJDIR)/sensor_manager.o: sensor_manager.hpp sensors/sensor_event.hpp sensors/sensor_led.hpp sensors/sensor_dht11.hpp sensors/sensor_relay.hpp sensors/sensor.hpp queue.hpp config.hpp debug.hpp error_codes.hpp makefile.client
+$(OBJDIR)/socket_client.o: socket_client.hpp socket.hpp message.hpp debug.hpp error_codes.hpp makefile.client
 $(OBJDIR)/socket.o: socket.hpp debug.hpp error_codes.hpp makefile.client

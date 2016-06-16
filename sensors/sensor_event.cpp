@@ -132,11 +132,11 @@ void sensor_pir_class::do_task (
     activated = false;
     printf ("waiting for event ...\n");
 
-    sleep (3);
+    sleep (sensor_gpio_num);
     printf ("motion detected\n") ;
     event_on ();
 
-    sleep (1);
+    sleep (sensor_gpio_num * .5 );
     printf ("motion off\n") ;
     event_off ();
 }
