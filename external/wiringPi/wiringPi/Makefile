@@ -34,8 +34,8 @@ endif
 STATIC=libwiringPi.a
 DYNAMIC=libwiringPi.so.$(VERSION)
 
-#PREFIX	= /home/asiris/workbench/pi/wifi/rtl8192eu_rpi2/workbench/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-
 PREFIX	=
+-include ../../../makefile.prefix
 #DEBUG	= -g -O0
 DEBUG	= -O2
 CC	= $(PREFIX)gcc
@@ -76,7 +76,7 @@ HEADERS =	wiringPi.h						\
 		max31855.h max5322.h ads1115.h				\
 		sn3218.h						\
 		drcSerial.h						\
-		wpiExtensions.h 
+		wpiExtensions.h
 
 
 OBJ	=	$(SRC:.c=.o)

@@ -1,7 +1,5 @@
 PREFIX	=
 
--include Make_client
-
 OBJDIR = obj_proxy
 TARGET = shp_proxy
 CC	= $(PREFIX)g++

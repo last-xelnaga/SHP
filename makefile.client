@@ -1,6 +1,6 @@
 PREFIX	=
 
--include Make_client
+-include makefile.prefix
 
 OBJDIR = obj_client
 TARGET = shp_client

@@ -3,7 +3,7 @@
 *.a
 *.so
 *.so.*
-Make_client
+makefile.prefix
 shp_client
 shp_proxy
 shp_test
