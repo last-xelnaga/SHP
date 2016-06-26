@@ -144,6 +144,19 @@ error_code_t message_class::add_string_to_message (
     return result;
 }
 
+error_code_t message_class::add_num_to_message (
+        const field_id_t field_id,
+        const int payload)
+{
+    error_code_t result = RESULT_OK;
+    DEBUG_LOG_TRACE_BEGIN
+
+    result = add_field_to_message (field_id, (unsigned char*) &payload, sizeof (payload));
+
+    DEBUG_LOG_TRACE_END (result)
+    return result;
+}
+
 error_code_t message_class::get_field_from_message (
         const field_id_t field_id,
         unsigned int* payload_size,

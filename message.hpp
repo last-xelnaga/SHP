@@ -16,8 +16,8 @@ public:
         // system messages
         send_configuration = 0,
         send_configuration_result,
-        get_version,
-        get_version_result,
+        send_version,
+        send_version_result,
 
         // sensor messages
         send_event = 100,
@@ -30,10 +30,14 @@ public:
     // list of the field types
     typedef enum
     {
-        config,
+        message_time,
+
         version,
 
-        message_time,
+        config_ip,
+        config_port,
+        config_name,
+        config_sensors,
 
         sensor_type,
         sensor_name,
@@ -86,6 +90,10 @@ public:
     error_code_t add_string_to_message (
             const field_id_t field_id,
             const char* p_payload);
+
+    error_code_t add_num_to_message (
+            const field_id_t field_id,
+            const int payload);
 
     /*
      * Function gets a field from the message.

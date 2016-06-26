@@ -74,9 +74,6 @@ private:
     error_code_t read_sensors (
             config_t* p_cfg);
 
-    //~config_class (
-    //        void);
-
 public:
     static config_class* instance (
             void)
@@ -88,6 +85,9 @@ public:
 
     error_code_t read_config (
             const char* p_cfg_filename);
+
+    ~config_class (
+            void);
 };
 
 #endif // CONFIG_HPP

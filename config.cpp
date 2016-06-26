@@ -207,3 +207,9 @@ error_code_t config_class::read_config (
     DEBUG_LOG_TRACE_END (result)
     return result;
 }
+
+config_class::~config_class (
+        void)
+{
+
+}
