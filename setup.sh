@@ -19,50 +19,64 @@ function error()
 # workspace setup
 root=$(pwd)
 tools=$root/../tools
+target=""
+
+if [ -z "$1" ]; then
+	echo "no argument supplied, so build for arm"
+else
+	echo "argument supplied, so build for pc"
+	target="pc"
+fi
 
 # get cross-compile tools
-if [ ! -d $tools ]; then
-  cd $root/..
+if [ -z "$target" ]; then
+	if [ ! -d $tools ]; then
+		cd $root/..
 
-	info "clone tools..."
-	git clone https://github.com/raspberrypi/tools
-	if [ "$?" -ne "0" ]; then
-		error "failed to get tools"
+		info "clone tools..."
+		git clone https://github.com/raspberrypi/tools
+		if [ "$?" -ne "0" ]; then
+			error "failed to get tools"
+		fi
+
+		info "checkout old but stable version..."
+		cd $tools
+		git checkout 3a413ca2b23fd275e8ddcc34f3f9fc3a4dbc723f
+		if [ "$?" -ne "0" ]; then
+			error "failed to checkout"
+		fi
+	else
+		info "tools already in place, skipping..."
 	fi
 
-	info "checkout old but stable version..."
-	cd $tools
-	git checkout 3a413ca2b23fd275e8ddcc34f3f9fc3a4dbc723f
-	if [ "$?" -ne "0" ]; then
-		error "failed to checkout"
-	fi
+	info "create makefile.prefix ..."
+	cd $root
+	#if [ ! -f makefile.prefix ]; then
+	 	echo "PREFIX	= $tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-" > makefile.prefix
+	#fi
 else
-	info "tools already in place, skipping..."
+	echo "PREFIX	= " > makefile.prefix
 fi
 
-info "create makefile.prefix ..."
-cd $root
-if [ ! -f makefile.prefix ]; then
-  echo "PREFIX	= $tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-" > makefile.prefix
-fi
 
-info "gtest ..."
+info "process gtest ..."
 cd external/gtest
 make clean
 make
 cd $root
 
-info "libconfig ..."
+info "process libconfig ..."
 cd external/libconfig
 make clean
 make
 cd $root
 
-info "wiringPi ..."
+info "process wiringPi ..."
 cd external/wiringPi/wiringPi
 make clean
 make static
 cd $root
 
+info "process shp ..."
 make clean
 make
