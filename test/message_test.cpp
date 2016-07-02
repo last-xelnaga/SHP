@@ -5,7 +5,7 @@
 
 TEST (message_test, message_success)
 {
-    message_class* p_message = new message_class (message_class::get_version);
+    message_class* p_message = new message_class (message_class::send_version);
     p_message->add_time_to_message ();
     p_message->add_string_to_message (message_class::sensor_type, "TEST_TYPE");
     p_message->add_string_to_message (message_class::sensor_name, "TEST_SENSOR");
@@ -30,7 +30,7 @@ TEST (message_test, message_success)
 
 TEST (message_test, message_wrong_field_negative)
 {
-    message_class* p_message = new message_class (message_class::get_version);
+    message_class* p_message = new message_class (message_class::send_version);
 
     unsigned int payload_size = 0;
     unsigned char* p_payload = NULL;

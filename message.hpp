@@ -14,16 +14,16 @@ public:
     typedef enum
     {
         // system messages
-        send_configuration = 0,
-        send_configuration_result,
-        send_version,
+        send_version = 0,
         send_version_result,
+        send_configuration,
+        send_configuration_result,
 
         // sensor messages
         send_event = 100,
         send_event_result,
-        send_data,
-        send_data_result,
+        //send_data,
+        //send_data_result,
 
     } message_id_t;
 
@@ -123,6 +123,12 @@ public:
     {
         *p_data = p_raw_payload;
         *data_length = header.payload_size;
+    }
+
+    message_id_t get_message_id (
+            void)
+    {
+        return header.message_id;
     }
 
     /*

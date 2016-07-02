@@ -20,6 +20,30 @@ typedef struct
 static server_socket_class* p_server_socket = NULL;
 static client_conf_t screen_buf [3];
 
+
+void process_message_version (
+        message_class* p_message)
+{
+    error_code_t result = RESULT_OK;
+
+    DEBUG_LOG_MESSAGE ("message version");
+
+    message_class message (message_class::send_version_result);
+    result = p_server_socket->send_message (&message);
+}
+
+void process_message_configuration (
+        message_class* p_message)
+{
+    error_code_t result = RESULT_OK;
+
+    DEBUG_LOG_MESSAGE ("message config");
+
+    message_class message (message_class::send_configuration_result);
+    result = p_server_socket->send_message (&message);
+}
+
+
 void* working_thread (
         void* p_arg)
 {
@@ -38,10 +62,34 @@ void* working_thread (
 
         if (result == RESULT_OK)
         {
-            p_queue->add (p_message);
+            switch (p_message->get_message_id ())
+            {
+                case message_class::send_version:
+                {
+                    process_message_version (p_message);
+                    delete p_message;
+                    break;
+                }
+                case message_class::send_configuration:
+                {
+                    process_message_configuration (p_message);
+                    delete p_message;
+                    break;
+                }
+                case message_class::send_event:
+                {
+                    p_queue->add (p_message);
 
-            message_class message (message_class::send_event_result);
-            result = p_server_socket->send_message (&message);
+                    message_class message (message_class::send_event_result);
+                    result = p_server_socket->send_message (&message);
+                    break;
+                }
+                default:
+                {
+                    DEBUG_LOG_MESSAGE ("message id is unknown");
+                    break;
+                }
+            }
         }
 
         if (result != RESULT_OK)
@@ -56,7 +104,8 @@ void* working_thread (
     return NULL;
 }
 
-void process_message (
+
+void process_message_event (
         message_class* p_message)
 {
     char p_buffer [64] = { 0 };
@@ -85,6 +134,25 @@ void process_message (
         }
     }
 }
+
+/*void process_message (
+        message_class* p_message)
+{
+    switch (p_message->get_message_id ())
+    {
+        case message_class::send_version:
+            process_message_version (p_message);
+            break;
+        case message_class::send_configuration:
+            process_message_configuration (p_message);
+            break;
+        case message_class::send_event:
+            process_message_event (p_message);
+            break;
+        default:
+            break;
+    }
+}*/
 
 void show_screen (
         void)
@@ -152,7 +220,7 @@ int main (
 
             if (result == RESULT_OK)
             {
-                process_message (p_message);
+                process_message_event (p_message);
                 p_queue->remove (message_id);
                 //x --;
             }

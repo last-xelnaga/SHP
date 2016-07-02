@@ -10,13 +10,14 @@
 #include <unistd.h>
 
 // states
-RESET // create socket
-VERSION // ask for version
-CONFIG // send config, create server socket
-READY // skip if not server socket
-PROCESS // process server messages, process messages
-IDLE // sleep
+const int RESET = 0; // create socket
+const int VERSION = 1; // ask for version
+const int CONFIG = 2; // send config, create server socket
+const int READY = 3; // skip if not server socket
+const int PROCESS = 4; // process server messages, process messages
+const int IDLE = 5; // sleep
 
+static int current_state = RESET;
 
 
 static config_class* config (
@@ -57,40 +58,11 @@ error_code_t send_message (
     return result;
 }
 
-int main (
-        int argc,
-        char **argv)
+error_code_t process_version (
+        client_socket_class* const p_socket)
 {
     error_code_t result = RESULT_OK;
-    sensor_manager_class* p_sensor_manager = NULL;
-    queue_class* p_queue = NULL;
-    client_socket_class* p_socket = NULL;
     DEBUG_LOG_TRACE_BEGIN
-
-    // create and read config
-    if (result == RESULT_OK)
-    {
-        result = config ()->read_config ("shp_client.cfg");
-    }
-
-    // organize a queue
-    if (result == RESULT_OK)
-    {
-        p_queue = new queue_class ();
-    }
-
-    // create sensor manager, initialize and verify settings
-    if (result == RESULT_OK)
-    {
-        p_sensor_manager = new sensor_manager_class ();
-        p_sensor_manager->setup_sensors (p_queue);
-    }
-
-    // create socket
-    if (result == RESULT_OK)
-    {
-        p_socket = new client_socket_class ();
-    }
 
     // check version
     if (result == RESULT_OK)
@@ -110,6 +82,16 @@ int main (
 
         delete p_message;
     }
+
+    DEBUG_LOG_TRACE_END (result)
+    return result;
+}
+
+error_code_t process_configuration  (
+        client_socket_class* const p_socket)
+{
+    error_code_t result = RESULT_OK;
+    DEBUG_LOG_TRACE_BEGIN
 
     // send config
     if (result == RESULT_OK)
@@ -143,37 +125,130 @@ int main (
         delete p_message;
     }
 
-    if (result == RESULT_OK)
-    {
-        p_sensor_manager->activate_sensors ();
-    }
+    DEBUG_LOG_TRACE_END (result)
+    return result;
+}
+
+int main (
+        int argc,
+        char **argv)
+{
+    error_code_t result = RESULT_OK;
+    sensor_manager_class* p_sensor_manager = NULL;
+    queue_class* p_queue = NULL;
+    client_socket_class* p_socket = NULL;
+    DEBUG_LOG_TRACE_BEGIN
+
 
     // loop
     if (result == RESULT_OK)
     {
         //int x = 100;
-
         while (result == RESULT_OK /*&& x >= 0*/)
         {
-            unsigned int message_id = 0;
-            message_class* p_message = NULL;
-
-            result = p_queue->peek (&message_id, &p_message);
-            if (message_id == 0)
+            switch (current_state)
             {
-                usleep (500000);
-                continue;
-            }
+                case RESET:
+                {
+                    // create and read config
+                    if (result == RESULT_OK)
+                    {
+                        result = config ()->read_config ("shp_client.cfg");
+                    }
 
-            if (result == RESULT_OK)
-            {
-                result = send_message (p_socket, p_message);
-            }
+                    // create socket
+                    if (result == RESULT_OK)
+                    {
+                        p_socket = new client_socket_class ();
+                    }
 
-            if (result == RESULT_OK)
-            {
-                p_queue->remove (message_id);
-                //x --;
+                    if (result == RESULT_OK)
+                    {
+                        current_state = VERSION;
+                    }
+                }
+                case VERSION:
+                {
+                    // check version
+                    if (result == RESULT_OK)
+                    {
+                        result = process_version (p_socket);
+                    }
+
+                    if (result == RESULT_OK)
+                    {
+                        current_state = CONFIG;
+                    }
+                }
+                case CONFIG:
+                {
+                    // send config
+                    if (result == RESULT_OK)
+                    {
+                        result = process_configuration (p_socket);
+                    }
+
+                    // create server socket
+                    if (result == RESULT_OK)
+                    {
+                        // TODO
+                    }
+
+                    if (result == RESULT_OK)
+                    {
+                        current_state = READY;
+                    }
+                }
+                case READY:
+                {
+                    // organize a queue
+                    if (result == RESULT_OK)
+                    {
+                        p_queue = new queue_class ();
+                    }
+
+                    // create sensor manager, initialize and verify settings
+                    if (result == RESULT_OK)
+                    {
+                        p_sensor_manager = new sensor_manager_class ();
+                        p_sensor_manager->setup_sensors (p_queue);
+                        p_sensor_manager->activate_sensors ();
+                    }
+
+                    if (result == RESULT_OK)
+                    {
+                        current_state = PROCESS;
+                    }
+                }
+                case PROCESS:
+                {
+                    unsigned int message_id = 0;
+                    message_class* p_message = NULL;
+
+                    result = p_queue->peek (&message_id, &p_message);
+                    if (message_id != 0)
+                    {
+                        //process_message
+                        if (result == RESULT_OK)
+                        {
+                            result = send_message (p_socket, p_message);
+                        }
+
+                        if (result == RESULT_OK)
+                        {
+                            p_queue->remove (message_id);
+                            //x --;
+                        }
+                        break;
+                    }
+
+
+                }
+                case IDLE:
+                {
+                    usleep (500000);
+                    //continue;
+                }
             }
         }
     }
