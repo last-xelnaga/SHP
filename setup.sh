@@ -77,6 +77,12 @@ make clean
 make static
 cd $root
 
+info "process zlib ..."
+cd external/zlib
+make clean
+make static
+cd $root
+
 info "process shp ..."
 make clean
 make
