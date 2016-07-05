@@ -12,21 +12,29 @@ class sensor_dht11_class : public sensor_event_class
 private:
     unsigned char p_data [DATA_LENGTH];
 
-private:
-    void read_data (
-            void);
-    bool is_data_crc_valid (
-            void);
-
 public:
     sensor_dht11_class (
             unsigned char gpio_num,
             const char* p_name);
 
+    void do_task (
+            void);
+
+    unsigned int get_temperature (
+            void);
+
+    unsigned int get_humidity (
+            void);
+
+protected:
     void sensor_setup (
             void);
 
-    void do_task (
+private:
+    void read_data (
+            void);
+
+    bool is_data_crc_valid (
             void);
 };
 
