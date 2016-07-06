@@ -1,8 +1,76 @@
 
 #include "sensor_dht11.hpp"
 #include "wiringPi.h"
-#include <stdio.h>
 
+#include <stdio.h>
+#include <unistd.h>
+
+#define RETRY_COUNT             3
+
+
+sensor_dht11_class::sensor_dht11_class (
+        unsigned char gpio_num,
+        const char* p_name) :
+        sensor_event_class (gpio_num, p_name, "DHT11")
+{
+
+}
+
+void sensor_dht11_class::do_task (
+        void)
+{
+    int retry_count = RETRY_COUNT;
+
+    // dactivate the working thread
+    activated = false;
+
+    while (true)
+    {
+        read_data ();
+
+        if (is_data_crc_valid ())
+            break;
+
+        if (-- retry_count < 0)
+        {
+            for (int i = 0; i < DATA_LENGTH; i ++)
+                p_data[i] = 0;
+            break;
+        }
+
+        sleep (1);
+    }
+
+    event_off ();
+}
+
+unsigned int sensor_dht11_class::get_temperature (
+        void)
+{
+    unsigned int temperature = p_data[0];
+    temperature <<= 8;
+    temperature += p_data[1];
+    return temperature;
+}
+
+unsigned int sensor_dht11_class::get_humidity (
+        void)
+{
+    unsigned int humidity = p_data[2];
+    humidity <<= 8;
+    humidity += p_data[3];
+    return humidity;
+}
+
+void sensor_dht11_class::sensor_setup (
+        void)
+{
+    pinMode (sensor_gpio_num, OUTPUT);
+
+    // pull the bus high. this one will show to sensor
+    // that it could stay in low-power-consumption mode
+    digitalWrite (sensor_gpio_num, HIGH);
+}
 
 void sensor_dht11_class::read_data (
         void)
@@ -63,53 +131,19 @@ void sensor_dht11_class::read_data (
     // pull the bus high. this one will show to sensor
     // that it could stay in low-power-consumption mode
     digitalWrite (sensor_gpio_num, HIGH);
-
-    //printf("temp %s\t%i.%i, hum %i.%i, crc %i\n", p_sensor_name, data[0], data[1], data[2], data[3], data[4]);
 }
 
 bool sensor_dht11_class::is_data_crc_valid (
         void)
 {
-    bool result = false;
+    bool result = true;
 
     // check the crc of the data buffer
-    if (true)
+    if ((p_data[0] + p_data[2]) - p_data[4] != 0)
     {
-        result = true;
+        result = false;
+        printf("%s temp %i.%i, hum %i.%i, crc %i\n", p_sensor_name, p_data[0], p_data[1], p_data[2], p_data[3], p_data[4]);
     }
 
     return result;
-}
-
-sensor_dht11_class::sensor_dht11_class (
-        unsigned char gpio_num,
-        const char* p_name) :
-        sensor_event_class (gpio_num, p_name, "DHT11")
-{
-
-}
-
-void sensor_dht11_class::sensor_setup (
-        void)
-{
-    pinMode (sensor_gpio_num, OUTPUT);
-
-    // pull the bus high. this one will show to sensor
-    // that it could stay in low-power-consumption mode
-    digitalWrite (sensor_gpio_num, HIGH);
-}
-
-void sensor_dht11_class::do_task (
-        void)
-{
-    activated = false;
-
-    unsigned int retry_count = 3;
-    do
-    {
-        read_data ();
-        retry_count --;
-    } while (is_data_crc_valid () != 1 && retry_count >= 0);
-
-    event_off ();
 }
