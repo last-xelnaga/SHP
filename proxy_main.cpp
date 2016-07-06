@@ -9,6 +9,13 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+#include <dirent.h>
+#include <stdlib.h>
+
+
+void process_message_version (
+        message_class* p_message,
+        server_socket_class* p_server_socket);
 
 typedef struct
 {
@@ -20,17 +27,6 @@ typedef struct
 static server_socket_class* p_server_socket = NULL;
 static client_conf_t screen_buf [3];
 
-
-void process_message_version (
-        message_class* p_message)
-{
-    error_code_t result = RESULT_OK;
-
-    DEBUG_LOG_MESSAGE ("message version");
-
-    message_class message (message_class::send_version_result);
-    result = p_server_socket->send_message (&message);
-}
 
 void process_message_configuration (
         message_class* p_message)
@@ -66,7 +62,7 @@ void* working_thread (
             {
                 case message_class::send_version:
                 {
-                    process_message_version (p_message);
+                    process_message_version (p_message, p_server_socket);
                     delete p_message;
                     break;
                 }

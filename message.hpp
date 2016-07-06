@@ -33,6 +33,7 @@ public:
         message_time,
 
         version,
+        update_data,
 
         config_ip,
         config_port,

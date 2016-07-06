@@ -15,6 +15,7 @@ LIB = -lpthread
 # main
 SRC	= \
 	proxy_main.cpp \
+	proxy_version.cpp \
 	debug.cpp \
 	message.cpp \
 	queue.cpp \
@@ -41,6 +42,7 @@ clean:
 
 # main
 $(OBJDIR)/proxy_main.o: message.hpp queue.hpp socket_server.hpp debug.hpp error_codes.hpp makefile.proxy
+$(OBJDIR)/proxy_version.o: message.hpp socket_server.hpp debug.hpp error_codes.hpp makefile.proxy
 $(OBJDIR)/debug.o: debug.hpp error_codes.hpp makefile.proxy
 $(OBJDIR)/message.o: message.hpp debug.hpp error_codes.hpp makefile.proxy
 $(OBJDIR)/queue.o: queue.hpp message.hpp debug.hpp error_codes.hpp makefile.proxy
