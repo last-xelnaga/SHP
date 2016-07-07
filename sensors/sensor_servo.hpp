@@ -6,23 +6,29 @@
 
 class sensor_servo_class : public sensor_class
 {
-    int active;
-
 public:
     sensor_servo_class (
-        unsigned char gpio_num,
-        const char* p_name);
+            unsigned char gpio_num,
+            const char* p_name);
 
-    virtual ~sensor_servo_class (
-        void);
+    void set_params (
+            unsigned int min_time,
+            unsigned int max_time,
+            unsigned int frequence);
 
     void set_angle (
             unsigned char angle);
 
     virtual void activate (
-        void);
+            void);
+
+    virtual ~sensor_servo_class (
+            void);
+private:
+    int active;
+
+    double wait_time;
+    double k, b;
 };
 
 #endif // SENSOR_SERVO_HPP
-
-

@@ -1,43 +1,54 @@
 
-#include <string.h>
-#include <stdio.h>
-
 #include "sensor_servo.hpp"
 #include "wiringPi.h"
 
+
 sensor_servo_class::sensor_servo_class (
     unsigned char gpio_num,
-    const char* p_name) : sensor_class(gpio_num, p_name, "SERVO")
+    const char* p_name) : sensor_class (gpio_num, p_name, "SERVO")
 {
-    sensor_gpio_num = gpio_num;
-    strcpy(p_sensor_name, p_name);
+    set_params (500, 2500, 50);
+}
 
+void sensor_servo_class::set_params (
+        unsigned int min_time,
+        unsigned int max_time,
+        unsigned int frequence)
+{
+    wait_time = 1000000 / frequence;
 
+    b = min_time;
+    k = (max_time - min_time) / 180;
+}
+
+void sensor_servo_class::set_angle (
+        unsigned char angle)
+{
+    // convert angle to microseconds
+    double pulse_time = angle * k + b;
+
+    int i = 25;
+    do
+    {
+        // generate a pulse
+        digitalWrite (sensor_gpio_num, HIGH);
+        delayMicroseconds ((unsigned int) pulse_time);
+        digitalWrite (sensor_gpio_num, LOW);
+
+        delayMicroseconds ((unsigned int) wait_time - pulse_time);
+        i --;
+    } while (i > 0);
+}
+
+void sensor_servo_class::activate (
+    void)
+{
+    digitalWrite (sensor_gpio_num, LOW);
+    pinMode (sensor_gpio_num, OUTPUT);
 }
 
 sensor_servo_class::~sensor_servo_class (
     void)
 {
 
-}
-
-void sensor_servo_class::set_angle (
-    unsigned char angle)
-{
-    // convert angle to microseconds
-    long wait_time = ((long)angle * 5.56) + 1000;
-
-    // generate a pulse
-    digitalWrite(sensor_gpio_num, HIGH);
-    delayMicroseconds((unsigned)wait_time);
-    digitalWrite(sensor_gpio_num, LOW);
-
-    // wait for an action
-    delay(20);
-}
-
-void sensor_servo_class::activate (
-    void)
-{
-    pinMode(sensor_gpio_num, OUTPUT);
 }
