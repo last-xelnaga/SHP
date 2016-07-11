@@ -1,5 +1,5 @@
 
-#include "sensor_dht11.hpp"
+#include "sensor_dht.hpp"
 #include "wiringPi.h"
 
 #include <stdio.h>
@@ -8,15 +8,15 @@
 #define RETRY_COUNT             3
 
 
-sensor_dht11_class::sensor_dht11_class (
+sensor_dht_class::sensor_dht_class (
         unsigned char gpio_num,
         const char* p_name) :
-        sensor_event_class (gpio_num, p_name, "DHT11")
+        sensor_event_class (gpio_num, p_name, "DHT")
 {
 
 }
 
-void sensor_dht11_class::do_task (
+void sensor_dht_class::do_task (
         void)
 {
     int retry_count = RETRY_COUNT;
@@ -44,25 +44,7 @@ void sensor_dht11_class::do_task (
     event_off ();
 }
 
-unsigned int sensor_dht11_class::get_temperature (
-        void)
-{
-    unsigned int temperature = p_data[0];
-    temperature <<= 8;
-    temperature += p_data[1];
-    return temperature;
-}
-
-unsigned int sensor_dht11_class::get_humidity (
-        void)
-{
-    unsigned int humidity = p_data[2];
-    humidity <<= 8;
-    humidity += p_data[3];
-    return humidity;
-}
-
-void sensor_dht11_class::sensor_setup (
+void sensor_dht_class::sensor_setup (
         void)
 {
     pinMode (sensor_gpio_num, OUTPUT);
@@ -72,7 +54,7 @@ void sensor_dht11_class::sensor_setup (
     digitalWrite (sensor_gpio_num, HIGH);
 }
 
-void sensor_dht11_class::read_data (
+void sensor_dht_class::read_data (
         void)
 {
     // send 'start' command
@@ -133,6 +115,35 @@ void sensor_dht11_class::read_data (
     digitalWrite (sensor_gpio_num, HIGH);
 }
 
+
+sensor_dht11_class::sensor_dht11_class (
+        unsigned char gpio_num,
+        const char* p_name) :
+        sensor_dht_class (gpio_num, p_name)
+{
+
+}
+
+int sensor_dht11_class::get_temperature (
+        void)
+{
+    int temperature = p_data[2];
+    temperature *= 10;
+    temperature += p_data[3];
+
+    return temperature;
+}
+
+unsigned int sensor_dht11_class::get_humidity (
+        void)
+{
+    unsigned int humidity = p_data[0];
+    humidity *= 10;
+    humidity += p_data[1];
+
+    return humidity;
+}
+
 bool sensor_dht11_class::is_data_crc_valid (
         void)
 {
@@ -143,6 +154,71 @@ bool sensor_dht11_class::is_data_crc_valid (
     {
         result = false;
         printf("%s temp %i.%i, hum %i.%i, crc %i\n", p_sensor_name, p_data[0], p_data[1], p_data[2], p_data[3], p_data[4]);
+    }
+
+    return result;
+}
+
+sensor_dht22_class::sensor_dht22_class (
+        unsigned char gpio_num,
+        const char* p_name) :
+        sensor_dht_class (gpio_num, p_name)
+{
+
+}
+
+int sensor_dht22_class::get_temperature (
+        void)
+{
+    int temperature = p_data[2] & 0x7f;
+    temperature <<= 8;
+    temperature += p_data[3];
+
+    unsigned int high = temperature *.1;
+    unsigned int low = temperature - high * 10;
+
+    temperature = high;
+    temperature *= 10;
+    temperature += low;
+
+    if (p_data[2] & 0x80)
+        temperature *= -1;
+
+    return temperature;
+}
+
+unsigned int sensor_dht22_class::get_humidity (
+        void)
+{
+    unsigned int humidity = p_data[0];
+    humidity <<= 8;
+    humidity += p_data[1];
+
+    unsigned int high = humidity *.1;
+    unsigned int low = humidity - high * 10;
+
+    humidity = high;
+    humidity *= 10;
+    humidity += low;
+
+    return humidity;
+}
+
+bool sensor_dht22_class::is_data_crc_valid (
+        void)
+{
+    bool result = true;
+    unsigned int full_check_sum = 0;
+    for (int i = 0; i < DATA_LENGTH - 1; i ++)
+        full_check_sum += p_data[i];
+
+    full_check_sum &= 0xff;
+
+    // check the crc of the data buffer
+    if (full_check_sum != p_data[4])
+    {
+        result = false;
+        printf ("%s hum %i %i, temp %i %i, crc %i\n", p_sensor_name, p_data[0], p_data[1], p_data[2], p_data[3], p_data[4]);
     }
 
     return result;

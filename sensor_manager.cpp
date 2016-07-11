@@ -8,7 +8,7 @@
 
 // triggers
 #include "sensors/sensor_event.hpp"
-#include "sensors/sensor_dht11.hpp"
+#include "sensors/sensor_dht.hpp"
 
 // slaves
 #include "sensors/sensor_led.hpp"
