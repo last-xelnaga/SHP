@@ -7,3 +7,8 @@ makefile.prefix
 shp_client
 shp_proxy
 shp_test
+shp_client.gz
+zpipe
+external/zlib/example
+external/zlib/minigzip
+*.gz

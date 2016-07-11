@@ -12,7 +12,12 @@
 
 extern int debug_level;
 
-// prototypes for the Messages
+#define LOG_MESSAGE(...)                                  \
+    debug_log_print (DEBUG_TAG_NAME, get_filename(__FILE__),    \
+            __LINE__, __VA_ARGS__);
+
+
+// prototypes for the Debug messages
 #ifdef DEBUG
 #define DEBUG_LOG_MESSAGE(...)                                  \
     debug_log_print (DEBUG_TAG_NAME, get_filename(__FILE__),    \

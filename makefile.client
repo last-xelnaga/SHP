@@ -2,14 +2,18 @@ PREFIX	=
 
 -include makefile.prefix
 
-OBJDIR = obj_client
-TARGET = shp_client
+REVFILE = REVISION
+OBJDIR  = obj_client
+TARGET  = shp_client
+
 CC	= $(PREFIX)g++
 
-CFLAGS	= -Wall -DDEBUG -DDEBUG_TAG="client"
+CFLAGS	= -Wall -DDEBUG_TAG="client"
 #CFLAGS	+= -O2 -fno-omit-frame-pointer
-CFLAGS	+= -DTRACE -DDATA
-CFLAGS	+= -ggdb
+CFLAGS	+= -O0 -ggdb
+CFLAGS	+= -DDEBUG
+#CFLAGS	+= -DTRACE -DDATA
+
 
 INC = -I.
 LIB = -lpthread
@@ -22,6 +26,11 @@ LIB	+= -Lexternal/libconfig -lconfig
 INC += -Iexternal/wiringPi/wiringPi
 LIB += -Lexternal/wiringPi/wiringPi -lwiringPi
 
+# zlib
+INC += -Iexternal/zlib
+LIB += -Lexternal/zlib -lz
+
+
 # sensors
 SRC	= \
 	sensors/sensor_event.cpp \
@@ -33,13 +42,15 @@ SRC	= \
 # main
 SRC	+= \
 	client_main.cpp \
+	client_version.cpp \
 	config.cpp \
 	debug.cpp \
 	message.cpp \
 	queue.cpp \
 	sensor_manager.cpp \
 	socket_client.cpp \
-	socket.cpp
+	socket.cpp \
+	version.cpp
 
 OBJ = $(SRC:%.cpp=$(OBJDIR)/%.o)
 
@@ -53,8 +64,17 @@ all: $(TARGET)
 $(OBJDIR):
 	mkdir -p $(OBJDIR)/sensors
 
-$(TARGET): $(OBJDIR) $(OBJ)
+$(REVFILE): $(SRC)
+	@if ! test -f $(REVFILE); then echo 0 > $(REVFILE); fi
+	@echo $$(($$(cat $(REVFILE)) + 1)) > $(REVFILE)
+	@touch version.cpp
+	@make simple=y -f makefile.client
+
+$(TARGET): $(REVFILE) $(OBJDIR) $(OBJ)
+ifndef simple
 	$(CC) -o $@ $(OBJ) $(LIB)
+	@./zpipe  < shp_client > $$(echo $$(($$(cat $(REVFILE))))).gz
+endif
 
 clean:
 	rm -rf $(OBJDIR) $(TARGET)
@@ -67,7 +87,8 @@ $(OBJDIR)/sensors/sensor_relay.o: sensors/sensor_relay.hpp sensors/sensor.hpp ma
 $(OBJDIR)/sensors/sensor_servo.o: sensors/sensor_servo.hpp sensors/sensor.hpp makefile.client
 
 # main
-$(OBJDIR)/client_main.o: config.hpp debug.hpp sensor_manager.hpp queue.hpp socket_client.hpp error_codes.hpp makefile.client
+$(OBJDIR)/client_main.o: config.hpp debug.hpp message.hpp sensor_manager.hpp queue.hpp socket_client.hpp error_codes.hpp makefile.client
+$(OBJDIR)/client_version.o: debug.hpp message.hpp socket_client.hpp error_codes.hpp makefile.client
 $(OBJDIR)/config.o: config.hpp debug.hpp error_codes.hpp makefile.client
 $(OBJDIR)/debug.o: debug.hpp error_codes.hpp makefile.client
 $(OBJDIR)/message.o: message.hpp debug.hpp error_codes.hpp makefile.client
@@ -75,3 +96,4 @@ $(OBJDIR)/queue.o: queue.hpp message.hpp debug.hpp error_codes.hpp makefile.clie
 $(OBJDIR)/sensor_manager.o: sensor_manager.hpp sensors/sensor_event.hpp sensors/sensor_led.hpp sensors/sensor_dht11.hpp sensors/sensor_relay.hpp sensors/sensor.hpp queue.hpp config.hpp debug.hpp error_codes.hpp makefile.client
 $(OBJDIR)/socket_client.o: socket_client.hpp socket.hpp message.hpp debug.hpp error_codes.hpp makefile.client
 $(OBJDIR)/socket.o: socket.hpp debug.hpp error_codes.hpp makefile.client
+$(OBJDIR)/version.o: version.hpp VERSION

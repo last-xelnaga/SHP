@@ -5,12 +5,13 @@
 #include "message.hpp"
 #include "queue.hpp"
 #include "socket_client.hpp"
+#include "version.hpp"
 
-#include <stdio.h>
 #include <unistd.h>
 
+
 // states
-const int RESET = 0; // create socket
+const int RESET = 0;    // create socket
 const int VERSION = 1; // ask for version
 const int CONFIG = 2; // send config, create server socket
 const int READY = 3; // skip if not server socket
@@ -18,6 +19,11 @@ const int PROCESS = 4; // process server messages, process messages
 const int IDLE = 5; // sleep
 
 static int current_state = RESET;
+
+
+error_code_t process_version (
+        client_socket_class* const p_socket,
+        unsigned int revision);
 
 
 static config_class* config (
@@ -53,35 +59,6 @@ error_code_t send_message (
     p_socket->close ();
 
     delete p_answer;
-
-    DEBUG_LOG_TRACE_END (result)
-    return result;
-}
-
-error_code_t process_version (
-        client_socket_class* const p_socket)
-{
-    error_code_t result = RESULT_OK;
-    DEBUG_LOG_TRACE_BEGIN
-
-    // check version
-    if (result == RESULT_OK)
-    {
-        message_class* p_message = new message_class (message_class::send_version);
-        result = p_message->add_string_to_message (message_class::version, "0.1");
-
-        if (result == RESULT_OK)
-        {
-            result = send_message (p_socket, p_message);
-        }
-
-        if (result == RESULT_OK)
-        {
-            // TODO
-        }
-
-        delete p_message;
-    }
 
     DEBUG_LOG_TRACE_END (result)
     return result;
@@ -140,6 +117,8 @@ int main (
     DEBUG_LOG_TRACE_BEGIN
 
 
+    LOG_MESSAGE ("shp client v%s", get_full_version ());
+
     // loop
     if (result == RESULT_OK)
     {
@@ -150,6 +129,8 @@ int main (
             {
                 case RESET:
                 {
+                    DEBUG_LOG_MESSAGE ("state: RESET");
+
                     // create and read config
                     if (result == RESULT_OK)
                     {
@@ -166,22 +147,34 @@ int main (
                     {
                         current_state = VERSION;
                     }
+                    else
+                    {
+                        break;
+                    }
                 }
                 case VERSION:
                 {
+                    DEBUG_LOG_MESSAGE ("state: VERSION");
+
                     // check version
                     if (result == RESULT_OK)
                     {
-                        result = process_version (p_socket);
+                        result = process_version (p_socket, get_revision ());
                     }
 
                     if (result == RESULT_OK)
                     {
                         current_state = CONFIG;
                     }
+                    else
+                    {
+                        break;
+                    }
                 }
                 case CONFIG:
                 {
+                    DEBUG_LOG_MESSAGE ("state: CONFIG");
+
                     // send config
                     if (result == RESULT_OK)
                     {
@@ -198,9 +191,15 @@ int main (
                     {
                         current_state = READY;
                     }
+                    else
+                    {
+                        break;
+                    }
                 }
                 case READY:
                 {
+                    DEBUG_LOG_MESSAGE ("state: READY");
+
                     // organize a queue
                     if (result == RESULT_OK)
                     {
@@ -218,6 +217,11 @@ int main (
                     if (result == RESULT_OK)
                     {
                         current_state = PROCESS;
+                        DEBUG_LOG_MESSAGE ("swich to PROCESS mode");
+                    }
+                    else
+                    {
+                        break;
                     }
                 }
                 case PROCESS:
