@@ -35,7 +35,7 @@ LIB += -Lexternal/zlib -lz
 SRC	= \
 	sensors/sensor_event.cpp \
 	sensors/sensor_led.cpp \
-	sensors/sensor_dht11.cpp \
+	sensors/sensor_dht.cpp \
 	sensors/sensor_relay.cpp \
 	sensors/sensor_servo.cpp
 
@@ -81,7 +81,7 @@ clean:
 
 # sensors
 $(OBJDIR)/sensors/sensor_led.o: sensors/sensor_led.hpp sensors/sensor.hpp makefile.client
-$(OBJDIR)/sensors/sensor_dht11.o: sensors/sensor_dht11.hpp sensors/sensor_event.hpp sensors/sensor.hpp makefile.client
+$(OBJDIR)/sensors/sensor_dht.o: sensors/sensor_dht.hpp sensors/sensor_event.hpp sensors/sensor.hpp makefile.client
 $(OBJDIR)/sensors/sensor_event.o: sensors/sensor_event.hpp sensors/sensor.hpp makefile.client
 $(OBJDIR)/sensors/sensor_relay.o: sensors/sensor_relay.hpp sensors/sensor.hpp makefile.client
 $(OBJDIR)/sensors/sensor_servo.o: sensors/sensor_servo.hpp sensors/sensor.hpp makefile.client
@@ -93,7 +93,7 @@ $(OBJDIR)/config.o: config.hpp debug.hpp error_codes.hpp makefile.client
 $(OBJDIR)/debug.o: debug.hpp error_codes.hpp makefile.client
 $(OBJDIR)/message.o: message.hpp debug.hpp error_codes.hpp makefile.client
 $(OBJDIR)/queue.o: queue.hpp message.hpp debug.hpp error_codes.hpp makefile.client
-$(OBJDIR)/sensor_manager.o: sensor_manager.hpp sensors/sensor_event.hpp sensors/sensor_led.hpp sensors/sensor_dht11.hpp sensors/sensor_relay.hpp sensors/sensor.hpp queue.hpp config.hpp debug.hpp error_codes.hpp makefile.client
+$(OBJDIR)/sensor_manager.o: sensor_manager.hpp sensors/sensor_event.hpp sensors/sensor_led.hpp sensors/sensor_dht.hpp sensors/sensor_relay.hpp sensors/sensor.hpp queue.hpp config.hpp debug.hpp error_codes.hpp makefile.client
 $(OBJDIR)/socket_client.o: socket_client.hpp socket.hpp message.hpp debug.hpp error_codes.hpp makefile.client
 $(OBJDIR)/socket.o: socket.hpp debug.hpp error_codes.hpp makefile.client
 $(OBJDIR)/version.o: version.hpp VERSION
