@@ -148,3 +148,28 @@ sensor_reed_class::sensor_reed_class (
 {
 
 }
+
+sensor_opto_interrupter_class::sensor_opto_interrupter_class (
+        unsigned char gpio_num,
+        const char* p_name) :
+        sensor_event_class (gpio_num, p_name, "OPTO")
+{
+
+}
+
+void sensor_opto_interrupter_class::do_task (
+        void)
+{
+    activated = false;
+
+    printf ("waiting for event ...\n");
+    while (digitalRead (sensor_gpio_num) == LOW)
+        delay (100);
+    printf ("light blocked\n") ;
+    event_on ();
+
+    while (digitalRead (sensor_gpio_num) == HIGH)
+        delay (100);
+    printf ("light streams\n") ;
+    event_off ();
+}

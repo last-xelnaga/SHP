@@ -92,4 +92,15 @@ public:
             const char * p_sensor_name_);
 };
 
+class sensor_opto_interrupter_class : public sensor_event_class
+{
+public:
+    sensor_opto_interrupter_class (
+            unsigned char sensor_gpio_num_,
+            const char * p_sensor_name_);
+
+    virtual void do_task (
+            void);
+};
+
 #endif // SENSOR_EVENT_HPP
