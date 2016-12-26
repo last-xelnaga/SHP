@@ -1,9 +1,9 @@
 
+#include "debug.hpp"
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <time.h>
-#include "debug.hpp"
 
 #define MAX_ERROR_MSG_SIZE          32
 #define MAX_LOG_MSG_SIZE            1024
@@ -54,7 +54,7 @@ int debug_level;
 bool is_initialized = false;
 static char p_debug_level_buffer [INTEND_DEPTH * INTEND_SIZE + 1];
 
-void level_debug_init (
+static void level_debug_init (
         void)
 {
     debug_level = 0;
@@ -86,12 +86,12 @@ const char* get_error_msg (
     return result_msg;
 }
 
-char* get_current_time (
+static const char* get_current_time (
         void)
 {
     static char result[12];
     time_t rawtime = time (NULL);
-    struct tm * timeinfo = localtime (&rawtime);
+    struct tm* timeinfo = localtime (&rawtime);
     sprintf (result, "%.2d:%.2d:%.2d", timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
     return result;
 }
@@ -99,7 +99,7 @@ char* get_current_time (
 void debug_log_print (
         const char* p_tag,
         const char* p_filename,
-        int line,
+        const int line,
         const char* text,
         ...)
 {

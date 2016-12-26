@@ -80,7 +80,7 @@ const char* get_error_msg (
 void debug_log_print (
         const char* p_tag,
         const char* p_filename,
-        int line,
+        const int line,
         const char* text,
         ...);
 

@@ -15,11 +15,11 @@ CFLAGS += -O2 -fno-omit-frame-pointer
 LIB	= -Lexternal/gtest -lgtest -lpthread
 
 SRC	= \
-	debug.cpp \
-	message.cpp \
-	test/message_test.cpp \
-	#socket.cpp \
-	test/socket_test.cpp
+    debug.cpp \
+    message.cpp \
+    test/message_test.cpp \
+    #socket.cpp \
+    test/socket_test.cpp
 
 
 OBJ = $(SRC:%.cpp=$(OBJDIR)/%.o)

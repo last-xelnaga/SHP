@@ -1,9 +1,8 @@
 
-#include "wiringPi.h"
-#include "sensor_manager.hpp"
+#include "client_sensor_manager.hpp"
 #include "debug.hpp"
 #include "message.hpp"
-#include "config.hpp"
+#include "client_config.hpp"
 #include "queue.hpp"
 
 // triggers
@@ -15,6 +14,7 @@
 #include "sensors/sensor_relay.hpp"
 #include "sensors/sensor_servo.hpp"
 
+#include <wiringPi.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -25,42 +25,38 @@
 static pthread_mutex_t sensor_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
-static config_class* config (
-        void)
-{
-   return config_class::instance ();
-}
-
-static void event_on (
-         sensor_manager_class* const p_sensor_manager,
-         sensor_event_class* const p_sensor)
-{
-    printf ("event_on callback\n") ;
-
-    message_class* p_message = new message_class (message_class::send_event);
-    p_message->add_time_to_message ();
-    p_message->add_string_to_message (message_class::sensor_type, p_sensor->get_type ());
-    p_message->add_string_to_message (message_class::sensor_name, p_sensor->get_name ());
-    p_message->add_string_to_message (message_class::sensor_data, EVENT_ON);
-
-    p_sensor_manager->add_to_queue (p_message);
-}
-
-static void event_off (
+static void event_on(
         sensor_manager_class* const p_sensor_manager,
         sensor_event_class* const p_sensor)
 {
-    printf ("event_off callback\n") ;
+    printf("event_on callback\n");
 
-    message_class* p_message = new message_class (message_class::send_event);
-    p_message->add_time_to_message ();
-    p_message->add_string_to_message (message_class::sensor_type, p_sensor->get_type ());
-    p_message->add_string_to_message (message_class::sensor_name, p_sensor->get_name ());
-    p_message->add_string_to_message (message_class::sensor_data, EVENT_OFF);
+    message_class* p_message = new message_class(message_class::send_event);
+    p_message->add_time_to_message();
+    p_message->add_string_to_message(message_class::sensor_type, p_sensor->get_type());
+    p_message->add_string_to_message(message_class::sensor_name, p_sensor->get_name());
+    p_message->add_num_to_message(message_class::sensor_gpio, p_sensor->get_gpio_num());
+    p_message->add_string_to_message(message_class::sensor_data, EVENT_ON);
 
-    p_sensor_manager->add_to_queue (p_message);
+    p_sensor_manager->add_to_queue(p_message);
+}
 
-    p_sensor->activate ();
+static void event_off(
+        sensor_manager_class* const p_sensor_manager,
+        sensor_event_class* const p_sensor)
+{
+    printf("event_off callback\n");
+
+    message_class* p_message = new message_class(message_class::send_event);
+    p_message->add_time_to_message();
+    p_message->add_string_to_message(message_class::sensor_type, p_sensor->get_type());
+    p_message->add_string_to_message(message_class::sensor_name, p_sensor->get_name());
+    p_message->add_num_to_message(message_class::sensor_gpio, p_sensor->get_gpio_num());
+    p_message->add_string_to_message(message_class::sensor_data, EVENT_OFF);
+
+    p_sensor_manager->add_to_queue(p_message);
+
+    p_sensor->activate();
 }
 
 /*static void led_on (
@@ -75,14 +71,14 @@ static void led_off (
 
 }*/
 
-sensor_manager_class::sensor_manager_class (
+sensor_manager_class::sensor_manager_class(
         void)
 {
     is_initialized = false;
     p_queue = NULL;
 }
 
-error_code_t sensor_manager_class::setup_board (
+error_code_t sensor_manager_class::setup_board(
         void)
 {
     error_code_t result = RESULT_OK;
@@ -93,26 +89,26 @@ error_code_t sensor_manager_class::setup_board (
         if (is_initialized == true)
         {
             // early return :(
-            DEBUG_LOG_TRACE_END (result)
+            DEBUG_LOG_TRACE_END(result)
             return result;
         }
     }
 
     if (result == RESULT_OK)
     {
-        if (geteuid () != 0)
+        if (geteuid() != 0)
         {
-            DEBUG_LOG_MESSAGE ("need to be root to run. exit");
+            DEBUG_LOG_MESSAGE("need to be root to run. exit");
             result = RESULT_INVALID_STATE;
         }
     }
 
     if (result == RESULT_OK)
     {
-        int res = wiringPiSetup ();
+        int res = wiringPiSetup();
         if (res == -1)
         {
-            DEBUG_LOG_MESSAGE ("board setup has failed. exit");
+            DEBUG_LOG_MESSAGE("board setup has failed. exit");
             result = RESULT_SYSTEM_ERROR;
         }
     }
@@ -122,11 +118,11 @@ error_code_t sensor_manager_class::setup_board (
         is_initialized = true;
     }
 
-    DEBUG_LOG_TRACE_END (result)
+    DEBUG_LOG_TRACE_END(result)
     return result;
 }
 
-error_code_t sensor_manager_class::setup_sensors (
+error_code_t sensor_manager_class::setup_sensors(
         queue_class* const p_queue_)
 {
     error_code_t result = RESULT_OK;
@@ -136,25 +132,25 @@ error_code_t sensor_manager_class::setup_sensors (
 
     if (result == RESULT_OK)
     {
-        //result = setup_board ();
+        //result = setup_board();
     }
 
     if (result == RESULT_OK)
     {
         // enter the critical section, lock the mutex
-        pthread_mutex_lock (&sensor_mutex);
+        pthread_mutex_lock(&sensor_mutex);
 
-        std::vector <sensor_settings_t>::const_iterator sensor;
-        for (sensor = config ()->sensors.begin (); sensor != config ()->sensors.end () && result == RESULT_OK; ++ sensor)
+        for (unsigned int i = 0; i < get_sensor_settings()->sensors_count && result == RESULT_OK; i ++)
         {
-            result = add_sensor (sensor->name.c_str (), sensor->gpio, sensor->type.c_str ());
+            sensor_settings_t* p_sensor = &get_sensor_settings()->p_sensors[i];
+            result = add_sensor(p_sensor->p_name, p_sensor->gpio, p_sensor->p_type);
         }
 
         // we finished with critical sectio, so unlock the mutex
-        pthread_mutex_unlock (&sensor_mutex);
+        pthread_mutex_unlock(&sensor_mutex);
     }
 
-    DEBUG_LOG_TRACE_END (result)
+    DEBUG_LOG_TRACE_END(result)
     return result;
 }
 

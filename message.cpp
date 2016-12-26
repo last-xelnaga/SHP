@@ -1,7 +1,6 @@
 
 #include "message.hpp"
 #include "debug.hpp"
-
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
@@ -12,7 +11,7 @@
 
 
 message_class::message_class (
-        message_id_t type)
+        const message_id_t type)
 {
     DEBUG_LOG_TRACE_BEGIN
 
@@ -28,7 +27,7 @@ message_class::message_class (
 }
 
 message_class::message_class (
-        message_header_t header_)
+        const message_header_t header_)
 {
     DEBUG_LOG_TRACE_BEGIN
 
@@ -146,7 +145,7 @@ error_code_t message_class::add_string_to_message (
 
 error_code_t message_class::add_num_to_message (
         const field_id_t field_id,
-        const int payload)
+        const unsigned int payload)
 {
     error_code_t result = RESULT_OK;
     DEBUG_LOG_TRACE_BEGIN

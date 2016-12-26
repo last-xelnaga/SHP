@@ -16,8 +16,8 @@ public:
         // system messages
         send_version = 0,
         send_version_result,
-        send_configuration,
-        send_configuration_result,
+        send_config,
+        send_config_result,
 
         // sensor messages
         send_event = 100,
@@ -30,19 +30,25 @@ public:
     // list of the field types
     typedef enum
     {
+        // generic
         message_time,
 
+        // version
         version,
         update_data,
 
-        config_ip,
-        config_port,
+        // config
+        config_client_id,
         config_name,
-        config_sensors,
+        config_ip,
+        config_sensor_count,
+        config_sensor_data, // name, type, gpio
 
-        sensor_type,
+        // events
         sensor_name,
         sensor_data,
+        sensor_type,
+        sensor_gpio,
 
     } field_id_t;
 
@@ -65,10 +71,10 @@ private:
 
 public:
     message_class (
-            message_id_t type);
+            const message_id_t type);
 
     message_class (
-            message_header_t header_);
+            const message_header_t header_);
 
     /*
      * Function adds a field to the message. Message will be stored in TLV format.
@@ -94,7 +100,7 @@ public:
 
     error_code_t add_num_to_message (
             const field_id_t field_id,
-            const int payload);
+            const unsigned int payload);
 
     /*
      * Function gets a field from the message.

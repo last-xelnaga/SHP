@@ -1,22 +1,22 @@
 
+#include "client_config.hpp"
 #include "debug.hpp"
 #include "message.hpp"
 #include "socket_client.hpp"
-#include "zlib.h"
-
+#include <zlib.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define CHUNK           16384
-#define NEW_BINARY      "new_binary"
+#define CHUNK                   16384
+#define NEW_BINARY              "new_binary"
 
 
-error_code_t write_to_file (
+static error_code_t write_to_file (
         unsigned char* p_buffer,
-        unsigned int buffer_size,
-        FILE *dest)
+        const unsigned int buffer_size,
+        FILE* dest)
 {
     error_code_t result = RESULT_OK;
     DEBUG_LOG_TRACE_BEGIN
@@ -31,10 +31,10 @@ error_code_t write_to_file (
     return result;
 }
 
-error_code_t decompress (
+static error_code_t decompress (
         unsigned char* source,
-        unsigned int source_size,
-        FILE *dest)
+        const unsigned int source_size,
+        FILE* dest)
 {
     error_code_t result = RESULT_OK;
     DEBUG_LOG_TRACE_BEGIN
@@ -87,8 +87,8 @@ error_code_t decompress (
     return result;
 }
 
-error_code_t process_update (
-        unsigned int data_size,
+static error_code_t process_update (
+        const unsigned int data_size,
         unsigned char* p_data)
 {
     error_code_t result = RESULT_OK;
@@ -99,7 +99,7 @@ error_code_t process_update (
     {
         DEBUG_LOG_MESSAGE ("data_size %d", data_size);
 
-        FILE *fptr = fopen (NEW_BINARY, "w");
+        FILE* fptr = fopen (NEW_BINARY, "w");
         result = decompress (p_data, data_size, fptr);
         fclose (fptr);
     }
@@ -116,10 +116,10 @@ error_code_t process_update (
 }
 
 error_code_t process_version (
-        client_socket_class* const p_socket,
-        unsigned int revision)
+        const unsigned int revision)
 {
     error_code_t result = RESULT_OK;
+    client_socket_class socket;
     DEBUG_LOG_TRACE_BEGIN
 
     // populate message
@@ -133,19 +133,19 @@ error_code_t process_version (
     // connect or reconnect if needed
     if (result == RESULT_OK)
     {
-        result = p_socket->connect (/*config ()->network.address.c_str ()*/"127.0.0.1",
-                /*config ()->network.port*/3456);
+        result = socket.connect (get_network_settings()->p_address,
+                get_network_settings()->port);
     }
 
     // send message and wait for answer
     message_class* p_answer = NULL;
     if (result == RESULT_OK)
     {
-        result = p_socket->send_and_receive (&message, &p_answer);
+        result = socket.send_and_receive (&message, &p_answer);
     }
 
     // close connection
-    p_socket->close ();
+    socket.close ();
 
     // check the message id
     if (result == RESULT_OK)

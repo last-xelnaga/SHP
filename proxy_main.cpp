@@ -1,44 +1,64 @@
 
+#include "proxy_main.hpp"
 #include "message.hpp"
 #include "queue.hpp"
 #include "debug.hpp"
 #include "socket_server.hpp"
-
 #include <unistd.h>
 #include <pthread.h>
 #include <string.h>
-#include <stdio.h>
-#include <time.h>
-#include <dirent.h>
-#include <stdlib.h>
 
-
-void process_message_version (
-        message_class* p_message,
-        server_socket_class* p_server_socket);
-
-typedef struct
-{
-    char name [16];
-    char buffer[64];
-    time_t last_message;
-} client_conf_t;
 
 static server_socket_class* p_server_socket = NULL;
-static client_conf_t screen_buf [3];
 
-
-void process_message_configuration (
-        message_class* p_message)
+static config_t config =
 {
-    error_code_t result = RESULT_OK;
+    0, // client_id
+    "", // p_name
+    0, // event_time
+    0, // sensors_count
+    NULL // p_sensors
+};
 
-    DEBUG_LOG_MESSAGE ("message config");
 
-    message_class message (message_class::send_configuration_result);
-    result = p_server_socket->send_message (&message);
+static void show_message_event (
+        message_class* const p_message)
+{
+    char p_buffer [64] = { 0 };
+
+    unsigned int payload_size = 0;
+    unsigned char* p_payload = NULL;
+    //p_message->get_field_from_message(message_class::sensor_name, &payload_size, &p_payload);
+    //char* p_name = (char*)p_payload;
+
+    p_message->get_field_from_message (message_class::sensor_data, &payload_size, &p_payload);
+    char* p_event = (char*) p_payload;
+
+    p_message->get_field_from_message (message_class::message_time, &payload_size, &p_payload);
+    time_t event_time;
+    memcpy (&event_time, p_payload, sizeof (event_time));
+    struct tm* event_tm = localtime (&event_time);
+
+    //p_message->get_field_from_message(message_class::sensor_type, &payload_size, &p_payload);
+    //char* p_type = (char*)p_payload;
+
+    unsigned int gpio = 0;
+    p_message->get_field_from_message (message_class::sensor_gpio, &payload_size, &p_payload);
+    memcpy (&gpio, p_payload, sizeof (gpio));
+
+    sprintf (p_buffer, "%-10s %.2i:%.2i:%.2i", (!strcmp (p_event, "1") ? "alarm" : ""), event_tm->tm_hour, event_tm->tm_min, event_tm->tm_sec);
+
+    for (unsigned int i = 0; i < config.sensors_count; i ++)
+    {
+        //DEBUG_LOG_MESSAGE("message event, gpio = %d, screen gpio = %d", gpio, screen_buf[i].gpio);
+
+        if (gpio == config.p_screen[i].gpio)
+        {
+            strcpy (config.p_screen[i].buffer, p_buffer);
+            config.p_screen[i].last_message = time (NULL);
+        }
+    }
 }
-
 
 void* working_thread (
         void* p_arg)
@@ -66,18 +86,15 @@ void* working_thread (
                     delete p_message;
                     break;
                 }
-                case message_class::send_configuration:
+                case message_class::send_config:
                 {
-                    process_message_configuration (p_message);
+                    process_message_configuration (p_message, p_server_socket, &config);
                     delete p_message;
                     break;
                 }
                 case message_class::send_event:
                 {
-                    p_queue->add (p_message);
-
-                    message_class message (message_class::send_event_result);
-                    result = p_server_socket->send_message (&message);
+                    process_message_event (p_message, p_server_socket, p_queue);
                     break;
                 }
                 default:
@@ -100,71 +117,29 @@ void* working_thread (
     return NULL;
 }
 
-
-void process_message_event (
-        message_class* p_message)
-{
-    char p_buffer [64] = { 0 };
-
-    unsigned int payload_size = 0;
-    unsigned char* p_payload = NULL;
-    p_message->get_field_from_message (message_class::sensor_name, &payload_size, &p_payload);
-    char* p_name = (char*) p_payload;
-
-    p_message->get_field_from_message (message_class::sensor_data, &payload_size, &p_payload);
-    char* p_event = (char*) p_payload;
-
-    p_message->get_field_from_message (message_class::message_time, &payload_size, &p_payload);
-    time_t event_time;
-    memcpy (&event_time, p_payload, sizeof (event_time));
-    struct tm* event_tm = localtime (&event_time);
-
-    sprintf (p_buffer, "%-10s %.2i:%.2i:%.2i", (!strcmp (p_event, "1") ? "alarm" : ""), event_tm->tm_hour, event_tm->tm_min, event_tm->tm_sec);
-
-    for (int i = 0; i < 3; ++ i)
-    {
-        if (!strcmp (screen_buf[i].name, p_name))
-        {
-            strcpy (screen_buf[i].buffer, p_buffer);
-            screen_buf[i].last_message = time (NULL);
-        }
-    }
-}
-
-/*void process_message (
-        message_class* p_message)
-{
-    switch (p_message->get_message_id ())
-    {
-        case message_class::send_version:
-            process_message_version (p_message);
-            break;
-        case message_class::send_configuration:
-            process_message_configuration (p_message);
-            break;
-        case message_class::send_event:
-            process_message_event (p_message);
-            break;
-        default:
-            break;
-    }
-}*/
-
 void show_screen (
         void)
 {
     time_t now;
-    time (&now);
+    time(&now);
 
-    for (int i = 0; i < 3; ++ i)
+    if (config.sensors_count == 0)
+        return;
+
+    printf("%-16s %-20s %s\n", "NAME", "DATA", "ELAPSED");
+
+    for (unsigned int i = 0; i < config.sensors_count; i ++)
     {
-        if (screen_buf[i].last_message)
-            printf ("%-16s %-20s %lu s     \n", screen_buf[i].name, screen_buf[i].buffer, now - screen_buf[i].last_message);
+        if (config.p_screen[i].last_message)
+            printf("%-16s %-20s %lu s     \n", config.p_screen[i].name, config.p_screen[i].buffer, now - config.p_screen[i].last_message);
         else
-            printf ("%-16s %-20s %s        \n", screen_buf[i].name, screen_buf[i].buffer, "never");
+            printf("%-16s %-20s %s        \n", config.p_screen[i].name, config.p_screen[i].buffer, "never");
     }
     //http://stackoverflow.com/questions/26423537/how-to-position-the-input-text-cursor-in-c
-    printf("\033[3A\r");
+    //printf("\033[3A\r");
+
+    for (unsigned int i = 0; i < config.sensors_count + 1; i ++)
+        printf("\033[1A\r");
 }
 
 int main (
@@ -177,19 +152,6 @@ int main (
 
     p_server_socket = new server_socket_class ();
     result = p_server_socket->bind (3456);
-
-    printf ("%-16s %-20s %s\n", "NAME", "DATA", "ELAPSED");
-    strcpy( screen_buf[0].name, "motion");
-    memset( screen_buf[0].buffer, 0, 64);
-    screen_buf[0].last_message = 0;
-
-    strcpy( screen_buf[1].name, "motion 2");
-    memset( screen_buf[1].buffer, 0, 64);
-    screen_buf[1].last_message = 0;
-
-    strcpy( screen_buf[2].name, "motion 3");
-    memset( screen_buf[2].buffer, 0, 64);
-    screen_buf[2].last_message = 0;
 
     // organize a queue
     queue_class* p_queue = new queue_class ();
@@ -216,7 +178,7 @@ int main (
 
             if (result == RESULT_OK)
             {
-                process_message_event (p_message);
+                show_message_event (p_message);
                 p_queue->remove (message_id);
                 //x --;
             }
