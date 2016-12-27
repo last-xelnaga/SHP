@@ -59,28 +59,28 @@ fi
 
 echo
 info "process gtest ..."
-cd external/gtest
+cd src/external/gtest
 make clean
 make
 cd $root
 
 echo
 info "process libconfig ..."
-cd external/libconfig
+cd src/external/libconfig
 make clean
 make
 cd $root
 
 echo
 info "process wiringPi ..."
-cd external/wiringPi/wiringPi
+cd src/external/wiringPi/wiringPi
 make clean
 make static
 cd $root
 
 echo
 info "process zlib ..."
-cd external/zlib
+cd src/external/zlib
 make clean
 make static
 cd zpipe
@@ -91,5 +91,7 @@ cd $root
 
 echo
 info "process shp ..."
+cd src
 make clean
 make
+cd $root
