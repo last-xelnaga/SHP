@@ -3,12 +3,12 @@ PREFIX	=
 -include makefile.prefix
 
 REVFILE = REVISION
-OBJDIR  = obj_client
-TARGET  = shp_client
+OBJDIR  = ../obj/obj_client
+TARGET  = ../shp_client
 
 CC	= $(PREFIX)g++
 
-CFLAGS	= -Wall -DDEBUG_TAG="client"
+CFLAGS	= -Wall -Wextra -DDEBUG_TAG="client"
 #CFLAGS	+= -O2 -fno-omit-frame-pointer
 CFLAGS	+= -O0 -ggdb
 CFLAGS	+= -DDEBUG
@@ -74,7 +74,7 @@ $(REVFILE): $(SRC)
 $(TARGET): $(REVFILE) $(OBJDIR) $(OBJ)
 ifndef simple
 	$(CC) -o $@ $(OBJ) $(LIB)
-	@./zpipe  < shp_client > $$(echo $$(($$(cat $(REVFILE))))).gz
+	@./../zpipe  < $(TARGET) > ../$$(echo $$(($$(cat $(REVFILE))))).gz
 endif
 
 clean:

@@ -1,13 +1,14 @@
 PREFIX	=
 
-OBJDIR = obj_proxy
-TARGET = shp_proxy
+OBJDIR = ../obj/obj_proxy
+TARGET = ../shp_proxy
 CC	= $(PREFIX)g++
 
-CFLAGS	= -Wall -DDEBUG -DDEBUG_TAG="proxy"
+CFLAGS	= -Wall -Wextra -DDEBUG_TAG="proxy"
 CFLAGS	+= -O2 -fno-omit-frame-pointer
+CFLAGS	+= -O0 -ggdb
+CFLAGS	+= -DDEBUG
 #CFLAGS	+= -DTRACE -DDATA
-#CFLAGS	+= -ggdb
 
 INC = -I.
 LIB = -lpthread

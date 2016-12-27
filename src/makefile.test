@@ -1,7 +1,7 @@
 PREFIX	=
 
-OBJDIR = obj_test
-TARGET = shp_test
+OBJDIR = ../obj/obj_test
+TARGET = ../shp_test
 CC	= $(PREFIX)g++
 
 INC	= -I. -Iexternal/gtest/include
