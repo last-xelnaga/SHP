@@ -1,4 +1,5 @@
 
+#include "client_main.hpp"
 #include "client_config.hpp"
 #include "debug.hpp"
 #include "message.hpp"

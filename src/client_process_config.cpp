@@ -1,4 +1,5 @@
 
+#include "client_main.hpp"
 #include "debug.hpp"
 #include "message.hpp"
 #include "client_config.hpp"
@@ -55,7 +56,8 @@ static error_code_t process_answer (
     error_code_t result = RESULT_OK;
     DEBUG_LOG_TRACE_BEGIN
 
-
+    // happy compiler
+    if (p_answer) {}
 
     DEBUG_LOG_TRACE_END (result)
     return result;

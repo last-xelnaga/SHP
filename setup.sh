@@ -29,6 +29,7 @@ if [ $arch == "x86_64" ]; then
     read -p "[y/n]" -n 1 -r
     echo    # new line
     if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo
         # get cross-compile tools
         if [ ! -d $tools ]; then
             cd $root/..
@@ -51,9 +52,9 @@ if [ $arch == "x86_64" ]; then
 
         info "create makefile.prefix ..."
         cd $root
-        echo "PREFIX = $tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-" > makefile.prefix
+        echo "PREFIX = $tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-" > src/makefile.prefix
     else
-        echo "PREFIX = " > makefile.prefix
+        echo "PREFIX = " > src/makefile.prefix
     fi
 fi
 

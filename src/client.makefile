@@ -9,10 +9,10 @@ TARGET  = ../shp_client
 CC	= $(PREFIX)g++
 
 CFLAGS	= -Wall -Wextra -DDEBUG_TAG="client"
-#CFLAGS	+= -O2 -fno-omit-frame-pointer
-CFLAGS	+= -O0 -ggdb
+CFLAGS	+= -O2 -fno-omit-frame-pointer
+#CFLAGS	+= -O0 -ggdb
 CFLAGS	+= -DDEBUG
-#CFLAGS	+= -DTRACE -DDATA
+CFLAGS	+= -DTRACE -DDATA
 
 
 INC = -I.
@@ -44,6 +44,7 @@ SRC	+= \
     client_config.cpp \
     client_main.cpp \
     client_process_config.cpp \
+    client_process_event.cpp \
     client_process_version.cpp \
     client_sensor_manager.cpp \
     debug.cpp \
@@ -89,8 +90,9 @@ $(OBJDIR)/sensors/sensor_servo.o: sensors/sensor_servo.hpp sensors/sensor.hpp cl
 
 # main
 $(OBJDIR)/client_config.o: client_config.hpp debug.hpp message.hpp error_codes.hpp client.makefile
-$(OBJDIR)/client_main.o: client_config.hpp debug.hpp message.hpp client_sensor_manager.hpp queue.hpp socket_client.hpp error_codes.hpp client.makefile
+$(OBJDIR)/client_main.o: client_main.hpp client_config.hpp debug.hpp message.hpp client_sensor_manager.hpp queue.hpp socket_client.hpp error_codes.hpp client.makefile
 $(OBJDIR)/client_process_config.o: debug.hpp message.hpp socket_client.hpp error_codes.hpp client.makefile
+$(OBJDIR)/client_process_event.o: debug.hpp message.hpp socket_client.hpp error_codes.hpp client.makefile
 $(OBJDIR)/client_process_version.o: debug.hpp message.hpp socket_client.hpp error_codes.hpp client.makefile
 $(OBJDIR)/debug.o: debug.hpp error_codes.hpp client.makefile
 $(OBJDIR)/message.o: message.hpp debug.hpp error_codes.hpp client.makefile

@@ -1,4 +1,5 @@
 
+#include "client_main.hpp"
 #include "client_config.hpp"
 #include "client_sensor_manager.hpp"
 #include "debug.hpp"
@@ -19,52 +20,15 @@ const int IDLE = 5;     // sleep
 
 static int current_state = RESET;
 
-error_code_t process_version (
-        const unsigned int revision);
-
-error_code_t process_configuration (
-        void);
-
-error_code_t send_message (
-        client_socket_class* const p_socket,
-        message_class* const p_message)
-{
-    error_code_t result = RESULT_OK;
-    message_class* p_answer = NULL;
-    DEBUG_LOG_TRACE_BEGIN
-
-    if (result == RESULT_OK)
-    {
-        result = p_socket->connect (get_network_settings ()->p_address,
-                get_network_settings ()->port);
-    }
-
-    if (result == RESULT_OK)
-    {
-        result = p_socket->send_and_receive (p_message, &p_answer);
-    }
-
-    if (result == RESULT_OK)
-    {
-        // check the answer
-    }
-
-    p_socket->close ();
-
-    delete p_answer;
-
-    DEBUG_LOG_TRACE_END (result)
-    return result;
-}
-
 int main (
         int argc,
         char** argv)
 {
+    if (argc){}
+    if (argv){}
     error_code_t result = RESULT_OK;
     sensor_manager_class* p_sensor_manager = NULL;
     queue_class* p_queue = NULL;
-    client_socket_class* p_socket = NULL;
     DEBUG_LOG_TRACE_BEGIN
 
     LOG_MESSAGE ("shp client v%s", get_full_version ());
@@ -85,12 +49,6 @@ int main (
                     if (result == RESULT_OK)
                     {
                         result = read_config ();
-                    }
-
-                    // create socket
-                    if (result == RESULT_OK)
-                    {
-                        p_socket = new client_socket_class ();
                     }
 
                     if (result == RESULT_OK)
@@ -141,7 +99,6 @@ int main (
 
                     if (result == RESULT_OK)
                     {
-                        //current_state = IDLE;
                         current_state = READY;
                     }
                     else
@@ -153,17 +110,9 @@ int main (
                 {
                     DEBUG_LOG_MESSAGE ("state: READY");
 
-                    // organize a queue
-                    //if (result == RESULT_OK)
-                    //{
-                    //    p_queue = new queue_class ();
-                    //}
-
                     // create sensor manager, initialize and verify settings
                     if (result == RESULT_OK)
                     {
-                        //p_sensor_manager = new sensor_manager_class ();
-                        //p_sensor_manager->setup_sensors (p_queue);
                         p_sensor_manager->activate_sensors ();
                     }
 
@@ -179,27 +128,10 @@ int main (
                 }
                 case PROCESS:
                 {
-                    unsigned int message_id = 0;
-                    message_class* p_message = NULL;
-
-                    result = p_queue->peek (&message_id, &p_message);
-                    if (message_id != 0)
+                    if (result == RESULT_OK)
                     {
-                        //process_message
-                        if (result == RESULT_OK)
-                        {
-                            result = send_message (p_socket, p_message);
-                        }
-
-                        if (result == RESULT_OK)
-                        {
-                            p_queue->remove (message_id);
-                            //x --;
-                        }
-                        break;
+                        result = process_event (p_queue);
                     }
-
-
                 }
                 case IDLE:
                 {
@@ -213,7 +145,6 @@ int main (
     destroy_config ();
     delete p_sensor_manager;
     delete p_queue;
-    delete p_socket;
 
     DEBUG_LOG_TRACE_END (result)
     return result;

@@ -5,10 +5,11 @@
 *.so.*
 makefile.prefix
 shp_client
+shp_head
 shp_proxy
 shp_test
 shp_client.gz
 zpipe
-external/zlib/example
-external/zlib/minigzip
+src/external/zlib/example
+src/external/zlib/minigzip
 *.gz

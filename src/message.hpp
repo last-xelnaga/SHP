@@ -18,12 +18,14 @@ public:
         send_version_result,
         send_config,
         send_config_result,
+        send_register,
+        send_register_result,
 
         // sensor messages
         send_event = 100,
         send_event_result,
-        //send_data,
-        //send_data_result,
+        send_command,
+        send_command_result,
 
     } message_id_t;
 

@@ -1,5 +1,5 @@
 
-#include "proxy_main.hpp"
+#include "head_main.hpp"
 #include "message.hpp"
 #include "debug.hpp"
 #include "socket_server.hpp"
@@ -9,14 +9,17 @@
 
 error_code_t process_message_configuration (
         message_class* const p_message,
-        server_socket_class* const p_server_socket,
         config_t* p_config)
 {
     error_code_t result = RESULT_OK;
-    //DEBUG_LOG_MESSAGE ("process_message_configuration");
+    DEBUG_LOG_MESSAGE ("process_message_configuration");
 
     unsigned int payload_size = 0;
     unsigned char* p_payload = NULL;
+
+    p_message->get_field_from_message (message_class::message_time, &payload_size, &p_payload);
+    memcpy (&p_config->event_time, p_payload, sizeof (time_t));
+    //DEBUG_LOG_MESSAGE("message config, time");
 
     unsigned int* client_id;
     p_message->get_field_from_message (message_class::config_client_id, &payload_size, (unsigned char**) &client_id);
@@ -26,9 +29,6 @@ error_code_t process_message_configuration (
     p_message->get_field_from_message (message_class::config_name, &payload_size, &p_payload);
     strcpy (p_config->p_name, (char*) p_payload);
     //DEBUG_LOG_MESSAGE("message config, p_name = %s", p_config->p_name);
-
-    p_message->get_field_from_message (message_class::message_time, &payload_size, &p_payload);
-    memcpy (&p_config->event_time, p_payload, sizeof (time_t));
 
     unsigned int* sensors_count;
     p_message->get_field_from_message (message_class::config_sensor_count, &payload_size, (unsigned char**) &sensors_count);
@@ -57,9 +57,6 @@ error_code_t process_message_configuration (
             p_config->p_screen[i].last_message = 0;
         }
     }
-
-    message_class message (message_class::send_config_result);
-    result = p_server_socket->send_message (&message);
 
     return result;
 }

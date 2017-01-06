@@ -40,28 +40,14 @@ class message_class;
 class server_socket_class;
 class queue_class;
 
-void process_message_version (
-        message_class* const p_message,
-        server_socket_class* const p_server_socket);
 
 error_code_t process_message_configuration(
         message_class* const p_message,
-        server_socket_class* const p_server_socket,
         config_t* p_config);
 
 void process_message_event (
         message_class* const p_message,
         server_socket_class* const p_server_socket,
         queue_class* p_queue);
-
-error_code_t process_message_register (
-        message_class* const p_message,
-        server_socket_class* const p_server_socket,
-        config_t* p_config);
-
-error_code_t process_message_command (
-        message_class* const p_message,
-        server_socket_class* const p_server_socket,
-        config_t* config);
 
 #endif // PROXY_MAIN_HPP

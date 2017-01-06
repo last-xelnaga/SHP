@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <pthread.h>
 
 #define EVENT_ON        "1"
 #define EVENT_OFF       "0"

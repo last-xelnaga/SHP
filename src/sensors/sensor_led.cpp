@@ -33,6 +33,8 @@ void sensor_led_class::switch_off(
 void sensor_led_class::flash_on(
     unsigned int ms)
 {
+    if (ms) {}
+
     active = 1;
     // start thread
 }

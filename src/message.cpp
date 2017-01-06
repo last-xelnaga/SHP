@@ -66,7 +66,7 @@ error_code_t message_class::add_field_to_message (
         if (header.payload_size + full_payload_size > message_alloc_size)
         {
             unsigned int new_message_alloc_size =
-                    MAX ((message_alloc_size * 2),
+                    MAX ((message_alloc_size * 4),
                     (header.payload_size + full_payload_size));
 
             unsigned char* p_new_payload = new unsigned char [new_message_alloc_size];
