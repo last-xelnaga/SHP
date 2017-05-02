@@ -1,45 +1,74 @@
-#ifndef MESSAGES_H
-#define MESSAGES_H
+#ifndef PROTOCOL_H
+#define PROTOCOL_H
 
-#define VERSION       1
+#define VERSION                 1
+#define PROBE_NAME_LEN          32
+#define SENSOR_NAME_LEN         64
+#define MESSAGE_LEN             32
+#define EVENT_PAYLOAD_LEN       32
 
-
-struct sensor_t
-{
-    unsigned char id;
-    unsigned char type;
-    unsigned char name_length;
-    char name [32];
-    unsigned char payload [32];
-};
-
+// probe initialization
 struct probe_to_server_init_t
 {
     // header
-    unsigned short version;
-    unsigned short size;
+    unsigned short  message_size;
+    unsigned char   message_id;
+    unsigned char   message_version;
 
     // probe description
-    unsigned char id;
-    int probe_time;
-    unsigned char name_length;
-    char name [32];
-
-    // sensors
-    unsigned char count;
-    struct sensor_t* sensors;
+    unsigned char   probe_id;
+    unsigned int    probe_time;
+    unsigned char   probe_name_len;
+    char            probe_name [PROBE_NAME_LEN];
 };
 
 struct server_to_probe_init_t
 {
     // header
-    unsigned short version;
-    //unsigned short size;
+    unsigned short  message_size;
+    unsigned char   message_id;
+    unsigned char   message_version;
 
     // result and error message
-    unsigned int result;
-    unsigned char msg_length;
-    char msg [32];
+    unsigned int    result;
+    unsigned char   msg_length;
+    char            msg [MESSAGE_LEN];
+};
+
+
+
+struct probe_to_server_sensor_t
+{
+    // header
+    unsigned short  message_size;
+    unsigned char   message_id;
+    unsigned char   message_version;
+
+    // probe description
+    unsigned char   probe_id;
+
+    // sensor description
+    unsigned char   sensor_id;
+    unsigned char   sensor_type;
+    unsigned char   sensor_name_len;
+    char            sensor_name [SENSOR_NAME_LEN];
+
+    // latest event
+    unsigned int    event_time;
+    unsigned char   event_payload [EVENT_PAYLOAD_LEN];
+};
+
+struct server_to_probe_sensor_t
+{
+    // header
+    unsigned short  message_size;
+    unsigned char   message_id;
+    unsigned char   message_version;
+
+    // result and error message
+    unsigned int    result;
+    unsigned char   msg_length;
+    char            msg [MESSAGE_LEN];
 };
 
 
@@ -197,4 +226,4 @@ struct server_to_client_command_t
 
 
 
-#endif // MESSAGES_H
+#endif // PROTOCOL_H

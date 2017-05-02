@@ -8,6 +8,7 @@ shp_client
 shp_head
 shp_proxy
 shp_test
+gtest_server
 shp_client.gz
 src/external/zlib/example
 src/external/zlib/minigzip
